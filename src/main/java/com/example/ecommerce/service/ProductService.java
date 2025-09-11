@@ -12,6 +12,14 @@ import org.springframework.stereotype.Service;
 public class ProductService {
     private final ProductRepository productRepository;
 
+    public Iterable<Product> getProducts() {
+        return productRepository.findAll();
+    }
+
+    public Product createProduct(Product product) {
+        return productRepository.save(product);
+    }
+
     @Cacheable(value = "products", key = "#id")
     public Product getProduct(Long id) {
         return productRepository.findById(id)

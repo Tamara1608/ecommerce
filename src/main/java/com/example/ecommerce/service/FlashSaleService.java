@@ -1,10 +1,8 @@
 package com.example.ecommerce.service;
-
 import com.example.ecommerce.entity.Orders;
 import com.example.ecommerce.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,10 +13,6 @@ public class FlashSaleService {
    private final String STOCK_KEY_PREFIX = "stock:";
    private final RedisTemplate<String, Object> redisTemplate;
    private final OrderRepository orderRepository;
-
-//    public FlashSaleService(RedisTemplate<String, Object> redisTemplate){
-//        this.redisTemplate = redisTemplate;
-//    }
 
     public String buyProduct(Long productId, Long userId) {
        String stockKey = STOCK_KEY_PREFIX + productId;
