@@ -11,16 +11,15 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
     private final ProductService productService;
 
-    @GetMapping("/products")
-    public Iterable<Product> getProducts() {
-        return productService.getProducts();
+    @GetMapping()
+    public Iterable<Product> getAllProducts() {
+        return productService.getAllProducts();
     }
 
-    @PostMapping("/products")
+    @PostMapping("/product")
     public Product createProduct(@RequestBody Product product) {
         return productService.createProduct(product);
     }
-
 
     @GetMapping("/{id}")
     public Product getProduct(@PathVariable Long id) {
