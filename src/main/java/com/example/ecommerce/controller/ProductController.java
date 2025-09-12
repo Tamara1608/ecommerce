@@ -20,10 +20,14 @@ public class ProductController {
     public Product createProduct(@RequestBody Product product) {
         return productService.createProduct(product);
     }
+    @GetMapping("/db/{id}")
+    public Product getProductFromDb(@PathVariable Long id) {
+        return productService.getProductFromDB(id);
+    }
 
-    @GetMapping("/{id}")
-    public Product getProduct(@PathVariable Long id) {
-        return productService.getProduct(id);
+    @GetMapping("/cache/{id}")
+    public Product getProductFromCache(@PathVariable Long id) {
+        return productService.getProductFromCache(id);
     }
 
     @PutMapping("/{id}")

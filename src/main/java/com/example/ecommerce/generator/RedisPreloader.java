@@ -26,9 +26,8 @@ public class RedisPreloader implements CommandLineRunner {
         Iterable<Product> products = productService.getAllProducts();
 
         for (Product p : products) {
-            // Store full product (without stock)
             redisTemplate.opsForValue().set(PRODUCT_KEY_PREFIX + p.getId(),
-                    Map.of("id", p.getId(), "name", p.getName(), "description", p.getDescription(), "price", p.getPrice()));
+                    new Product(p.getId(), p.getName(), p.getDescription(), p.getPrice(), null)); // stock = null
 
             // Store stock separately
             // Only set stock if it does not exist in Redis
