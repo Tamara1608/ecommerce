@@ -3,6 +3,7 @@ package com.example.ecommerce.controller;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
+    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
+        return productService.deleteProduct(id);
     }
 }

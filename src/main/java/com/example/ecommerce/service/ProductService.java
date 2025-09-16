@@ -9,6 +9,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -86,12 +87,15 @@ public class ProductService {
     // DELETE
     // -------------------
 
-    public void deleteProduct(Long id) {
+    public ResponseEntity<String>  deleteProduct(Long id) {
         if (!productRepository.existsById(id)){
-            throw new RuntimeException("Product not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Product not found");
         }
         productRepository.deleteById(id);
         removeProductFromCache(id);
+        return ResponseEntity.ok("Product deleted successfully");
+
     }
 
 
