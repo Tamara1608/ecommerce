@@ -8,7 +8,11 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,21 +25,23 @@ public class ProductService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    // -------------------
+    // GET from DB directly
+    // -------------------
+
     public Product getProductFromDB (Long id){
         return productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,  "Product not found!"
+                ));
     }
 
-    // Get all products (optional caching)
-    @Cacheable(value = "allProducts")
-    public Iterable<Product> getAllProducts() {
+    public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
-
-    @CachePut(value = "products", key = "#product.id")
-    public Product createProduct(Product product) {
-        return productRepository.save(product);
-    }
+    // -------------------
+    // GET from Cache + Fallback
+    // -------------------
 
     // Get product from Redis or fallback to DB
     public Product getProductFromCache(Long productId) {
@@ -51,18 +57,56 @@ public class ProductService {
             return product;
         }
 
-        // Fallback to DB
-        return productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+        // Fallback to DB + write in cache
+        Product dbProduct = getProductFromDB(productId);
+        if (dbProduct != null) {cacheProduct(dbProduct);}
+        return dbProduct;
     }
 
-    @CacheEvict(value = "products", key = "#product.id")
+    // -------------------
+    // CREATE / UPDATE
+    // -------------------
+
+    public Product createProduct(Product product) {
+        Product saved = productRepository.save(product);
+        cacheProduct(saved); // also cache it
+        return saved;
+    }
+
     public Product updateProduct(Product product) {
-        return productRepository.save(product);
+        if (!productRepository.existsById(product.getId())) {
+            throw new RuntimeException("Product not found for update");
+        }
+        Product updated = productRepository.save(product);
+        cacheProduct(updated); // update cache
+        return updated;
     }
 
-    @CacheEvict(value = "products", key = "#id")
+    // -------------------
+    // DELETE
+    // -------------------
+
     public void deleteProduct(Long id) {
+        if (!productRepository.existsById(id)){
+            throw new RuntimeException("Product not found");
+        }
         productRepository.deleteById(id);
+        removeProductFromCache(id);
     }
+
+
+    // -------------------
+    // Helper methods for cache ops
+    // -------------------
+    private void cacheProduct(Product product) {
+        String productKey = PRODUCT_KEY_PREFIX + product.getId();
+        redisTemplate.opsForValue().set(productKey, product);
+        redisTemplate.opsForValue().set(STOCK_KEY_PREFIX + product.getId(), product.getStock());
+    }
+
+    private void removeProductFromCache(Long productId) {
+        redisTemplate.delete(PRODUCT_KEY_PREFIX + productId);
+        redisTemplate.delete(STOCK_KEY_PREFIX + productId);
+    }
+
 }

@@ -5,6 +5,8 @@ import com.example.ecommerce.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/products")
 @RequiredArgsConstructor
@@ -12,7 +14,7 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping()
-    public Iterable<Product> getAllProducts() {
+    public List<Product> getAllProducts() {
         return productService.getAllProducts();
     }
 
@@ -34,5 +36,10 @@ public class ProductController {
     public Product updateProduct(@PathVariable Long id, @RequestBody Product product) {
         product.setId(id);
         return productService.updateProduct(product);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
     }
 }
