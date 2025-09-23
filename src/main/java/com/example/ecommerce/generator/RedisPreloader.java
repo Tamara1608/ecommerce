@@ -1,5 +1,6 @@
 package com.example.ecommerce.generator;
 
+import com.example.ecommerce.DTO.ProductCacheDTO;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.service.ProductService;
 import org.springframework.boot.CommandLineRunner;
@@ -26,11 +27,10 @@ public class RedisPreloader implements CommandLineRunner {
         Iterable<Product> products = productService.getAllProducts();
 
         for (Product p : products) {
-            redisTemplate.opsForValue().set(PRODUCT_KEY_PREFIX + p.getId(),
-                    new Product(p.getId(), p.getName(), p.getDescription(), p.getPrice(), null)); // stock = null
+            ProductCacheDTO dto = new ProductCacheDTO(p.getId(), p.getName(), p.getDescription(), p.getPrice());
+            redisTemplate.opsForValue().set(PRODUCT_KEY_PREFIX + p.getId(), dto);
 
-            // Store stock separately
-            // Only set stock if it does not exist in Redis
+            // Seperate stock cache
             String stockKey = STOCK_KEY_PREFIX + p.getId();
             if (redisTemplate.opsForValue().get(stockKey) == null) {
                 redisTemplate.opsForValue().set(stockKey, p.getStock());

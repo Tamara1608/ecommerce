@@ -1,12 +1,9 @@
 package com.example.ecommerce.service;
 
+import com.example.ecommerce.DTO.ProductCacheDTO;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.repository.ProductRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +20,6 @@ public class ProductService {
 
     private final String PRODUCT_KEY_PREFIX = "products::";
     private final String STOCK_KEY_PREFIX = "stock:";
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     // -------------------
     // GET from DB directly
@@ -49,10 +44,17 @@ public class ProductService {
         String productKey = PRODUCT_KEY_PREFIX + productId;
         Object cached = redisTemplate.opsForValue().get(productKey);
         if (cached != null) {
-            Product product = (Product) cached;
+            ProductCacheDTO dto = (ProductCacheDTO) cached;
 
             // Fetch stock separately
             Integer stock = (Integer) redisTemplate.opsForValue().get(STOCK_KEY_PREFIX + productId);
+
+            // Convert back to Product entity for API response
+            Product product = new Product();
+            product.setId(dto.getId());
+            product.setName(dto.getName());
+            product.setDescription(dto.getDescription());
+            product.setPrice(dto.getPrice());
             product.setStock(stock != null ? stock : 0);
 
             return product;
@@ -104,7 +106,16 @@ public class ProductService {
     // -------------------
     private void cacheProduct(Product product) {
         String productKey = PRODUCT_KEY_PREFIX + product.getId();
-        redisTemplate.opsForValue().set(productKey, product);
+
+        // Convert to DTO
+        ProductCacheDTO dto = new ProductCacheDTO(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice()
+        );
+
+        redisTemplate.opsForValue().set(productKey, dto);
         redisTemplate.opsForValue().set(STOCK_KEY_PREFIX + product.getId(), product.getStock());
     }
 
