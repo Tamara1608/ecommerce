@@ -100,7 +100,6 @@ public class ProductService {
 
     }
 
-
     // -------------------
     // Helper methods for cache ops
     // -------------------
