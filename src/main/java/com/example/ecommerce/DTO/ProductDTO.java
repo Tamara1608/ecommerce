@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 
-public class ProductCacheDTO {
+public class ProductDTO {
     private Long id;
     private String name;
     private String description;

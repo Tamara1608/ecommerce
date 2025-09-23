@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Entity
-@Table(name = "products") // or "users"
+@Table(name = "products")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,6 +23,6 @@ public class Product implements Serializable {
     private Double price;
     private Integer stock;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> orderItems;
+//    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<OrderItem> orderItems;
 }

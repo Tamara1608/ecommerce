@@ -1,6 +1,6 @@
 package com.example.ecommerce.service;
 
-import com.example.ecommerce.DTO.ProductCacheDTO;
+import com.example.ecommerce.DTO.ProductDTO;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ public class ProductService {
         String productKey = PRODUCT_KEY_PREFIX + productId;
         Object cached = redisTemplate.opsForValue().get(productKey);
         if (cached != null) {
-            ProductCacheDTO dto = (ProductCacheDTO) cached;
+            ProductDTO dto = (ProductDTO) cached;
 
             // Fetch stock separately
             Integer stock = (Integer) redisTemplate.opsForValue().get(STOCK_KEY_PREFIX + productId);
@@ -108,7 +108,7 @@ public class ProductService {
         String productKey = PRODUCT_KEY_PREFIX + product.getId();
 
         // Convert to DTO
-        ProductCacheDTO dto = new ProductCacheDTO(
+        ProductDTO dto = new ProductDTO(
                 product.getId(),
                 product.getName(),
                 product.getDescription(),
