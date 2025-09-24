@@ -1,5 +1,6 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.DTO.OrderDTO;
 import com.example.ecommerce.entity.Order;
 import com.example.ecommerce.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,11 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    @GetMapping("")
+    public ResponseEntity<List<OrderDTO>> getAllOrders() {
+        List<OrderDTO> orders = orderService.getAllOrders();
+        return ResponseEntity.ok(orders);
+    }
     @GetMapping("/user/{id}")
     public ResponseEntity<List<Order>> getOrdersByUser(@PathVariable Long id) {
         List<Order> orders = orderService.getOrdersByUser(id);
