@@ -8,8 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
-//    List<Order> findByUserId(Long userId);
-
 
     @Query("SELECT DISTINCT o FROM Order o " +
             "LEFT JOIN FETCH o.items i " +

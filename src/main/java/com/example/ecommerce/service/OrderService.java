@@ -5,7 +5,6 @@ import com.example.ecommerce.DTO.ProductDTO;
 import com.example.ecommerce.DTO.UserDTO;
 import com.example.ecommerce.entity.Order;
 import com.example.ecommerce.repository.OrderRepository;
-import com.example.ecommerce.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,6 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final UserRepository userRepository;
 
     public List<OrderDTO> getAllOrders() {
         return orderRepository.findAll()
@@ -25,14 +23,19 @@ public class OrderService {
                 .map(this::mapToDTO)
                 .toList();
     }
-    public Order getOrderById (Long id){
+    public OrderDTO getOrderById (Long id){
         return orderRepository.findById(id)
+                .map(this::mapToDTO)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,  "Order not found!"
                 ));
     }
-    public List<Order> getOrdersByUser (Long id){
-       return orderRepository.findOrdersWithItemsAndProductsByUserId(id);
+
+    public List<OrderDTO> getOrdersByUser (Long id){
+       return orderRepository.findOrdersWithItemsAndProductsByUserId(id)
+               .stream()
+               .map(this::mapToDTO)
+               .toList();
     }
 
     private OrderDTO mapToDTO(Order order) {
