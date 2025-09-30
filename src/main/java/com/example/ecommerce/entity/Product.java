@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -23,6 +22,4 @@ public class Product implements Serializable {
     private Double price;
     private Integer stock;
 
-//    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<OrderItem> orderItems;
 }

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -38,6 +39,15 @@ public class ProductService {
     // -------------------
     // GET from Cache + Fallback
     // -------------------
+
+    public List<Product> getAllProductsFromCache(){
+        Object cached = redisTemplate.opsForValue().get(PRODUCT_KEY_PREFIX + "all");
+        if (cached == null) {
+            return Collections.emptyList();
+        }
+
+        return (List<Product>) cached;
+    }
 
     // Get product from Redis or fallback to DB
     public Product getProductFromCache(Long productId) {

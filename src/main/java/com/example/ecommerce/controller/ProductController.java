@@ -14,6 +14,10 @@ import java.util.List;
 public class ProductController {
     private final ProductService productService;
 
+    @GetMapping("/cache")
+    public List<Product> getAllProductsFromCache() {
+        return productService.getAllProductsFromCache();
+    }
     @GetMapping()
     public List<Product> getAllProducts() {
         return productService.getAllProducts();
