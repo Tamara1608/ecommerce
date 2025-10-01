@@ -27,6 +27,8 @@ public class AuthService {
         }
 
         User user = new User();
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(request.getPassword());
@@ -46,7 +48,7 @@ public class AuthService {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
         session.setAttribute(SESSION_USER_ID, user.getId());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(user);
     }
 
     public ResponseEntity<?> logout(HttpSession session) {

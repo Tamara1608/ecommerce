@@ -38,7 +38,6 @@ public class FlashSaleService {
         for (BuyRequest.ProductOrder po : request.getProducts()) {
             String stockKey = STOCK_KEY_PREFIX + po.getProductId();
 
-            // Atomic decrement in Redis
             Long stock = redisTemplate.opsForValue().decrement(stockKey, po.getQuantity());
 
             if (stock != null && stock >= 0) {
@@ -56,7 +55,6 @@ public class FlashSaleService {
                         .append("x ").append(product.getName())
                         .append(". Remaining stock: ").append(stock).append("\n");
             } else {
-                // rollback decrement if sold out
                 redisTemplate.opsForValue().increment(stockKey, po.getQuantity());
                 result.append(productRepository.findById(po.getProductId())
                                 .map(Product::getName).orElse("Unknown"))

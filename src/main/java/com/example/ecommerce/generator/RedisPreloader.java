@@ -26,16 +26,23 @@ public class RedisPreloader implements CommandLineRunner {
         Iterable<Product> products = productService.getAllProducts();
 
         for (Product p : products) {
-            ProductDTO dto = new ProductDTO(p.getId(), p.getName(), p.getDescription(), p.getPrice());
+            ProductDTO dto = new ProductDTO (
+                    p.getId(),
+                    p.getName(),
+                    p.getDescription(),
+                    p.getPrice(),
+                    p.getTotalStock(),
+                    p.getPercentageOff(),
+                    p.getImageLink()
+            );
             redisTemplate.opsForValue().set(PRODUCT_KEY_PREFIX + p.getId(), dto);
 
-            // Seperate stock cache
             String stockKey = STOCK_KEY_PREFIX + p.getId();
             if (redisTemplate.opsForValue().get(stockKey) == null) {
                 redisTemplate.opsForValue().set(stockKey, p.getStock());
             }
         }
 
-        System.out.println("✅ Redis preloaded with products and stock counters.");
+        System.out.println("Redis preloaded with products and stock counters.");
     }
 }

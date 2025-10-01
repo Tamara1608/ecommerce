@@ -65,6 +65,7 @@ public class ProductService {
             product.setName(dto.getName());
             product.setDescription(dto.getDescription());
             product.setPrice(dto.getPrice());
+            product.setImageLink(dto.getImageURL());
             product.setStock(stock != null ? stock : 0);
 
             return product;
@@ -121,7 +122,10 @@ public class ProductService {
                 product.getId(),
                 product.getName(),
                 product.getDescription(),
-                product.getPrice()
+                product.getPrice(),
+                product.getTotalStock(),
+                product.getPercentageOff(),
+                product.getImageLink()
         );
 
         redisTemplate.opsForValue().set(productKey, dto);

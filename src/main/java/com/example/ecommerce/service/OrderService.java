@@ -53,7 +53,10 @@ public class OrderService {
                                 item.getProduct().getId(),
                                 item.getProduct().getName(),
                                 item.getProduct().getDescription(),
-                                item.getProduct().getPrice()
+                                item.getProduct().getPrice(),
+                                item.getProduct().getTotalStock(),
+                                item.getProduct().getPercentageOff(),
+                                item.getProduct().getImageLink()
                         )
                 ))
                 .toList();

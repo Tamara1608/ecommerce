@@ -13,4 +13,7 @@ public class ProductDTO {
     private String name;
     private String description;
     private Double price;
+    private Integer totalStock;
+    private Integer percentageOff;
+    private String imageURL;
 }
