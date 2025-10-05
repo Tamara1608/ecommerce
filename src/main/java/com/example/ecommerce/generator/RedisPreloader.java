@@ -15,6 +15,8 @@ public class RedisPreloader implements CommandLineRunner {
 
     private final String PRODUCT_KEY_PREFIX = "products::";
     private final String STOCK_KEY_PREFIX = "stock:";
+    private final String PRODUCT_IDS_KEY = "products:all_ids";
+
 
     public RedisPreloader(ProductService productService, RedisTemplate<String, Object> redisTemplate) {
         this.productService = productService;
@@ -41,6 +43,8 @@ public class RedisPreloader implements CommandLineRunner {
             if (redisTemplate.opsForValue().get(stockKey) == null) {
                 redisTemplate.opsForValue().set(stockKey, p.getStock());
             }
+            redisTemplate.opsForSet().add(PRODUCT_IDS_KEY, p.getId().toString());
+
         }
 
         System.out.println("Redis preloaded with products and stock counters.");

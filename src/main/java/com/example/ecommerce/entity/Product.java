@@ -25,6 +25,4 @@ public class Product implements Serializable {
     private Integer percentageOff;
     private String imageLink;
 
-
-
 }
