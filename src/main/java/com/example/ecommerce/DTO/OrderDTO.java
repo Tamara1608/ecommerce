@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,5 +16,8 @@ public class OrderDTO {
     private LocalDateTime orderDate;
     private UserDTO user;
     private List<OrderItemDTO> items;
+    private String couponApplied;
+    private Integer discountAmount;
+    private Double totalCost;
 }
 

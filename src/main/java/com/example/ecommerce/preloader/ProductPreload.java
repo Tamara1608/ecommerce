@@ -1,4 +1,4 @@
-package com.example.ecommerce.generator;
+package com.example.ecommerce.preloader;
 
 import com.example.ecommerce.DTO.ProductDTO;
 import com.example.ecommerce.entity.Product;
@@ -8,7 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RedisPreloader implements CommandLineRunner {
+public class ProductPreload implements CommandLineRunner {
 
     private final ProductService productService;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -18,7 +18,7 @@ public class RedisPreloader implements CommandLineRunner {
     private final String PRODUCT_IDS_KEY = "products:all_ids";
 
 
-    public RedisPreloader(ProductService productService, RedisTemplate<String, Object> redisTemplate) {
+    public ProductPreload(ProductService productService, RedisTemplate<String, Object> redisTemplate) {
         this.productService = productService;
         this.redisTemplate = redisTemplate;
     }

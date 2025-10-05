@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Bean;
 
 @Configuration
 public class AzureBlobConfig {
+
 //    @Value("${azure.storage.account-name}")
     private String accountName = "eccomstorage";
-
 //    @Value("${azure.storage.account-key}")
 //    @Value("${azure.storage.container-name}")
     private String containerName = "imgs";
@@ -20,8 +20,7 @@ public class AzureBlobConfig {
     public BlobContainerClient blobContainerClient() {
         String connectStr = String.format(
                 "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net",
-                accountName
-        );
+                accountName);
 
         BlobServiceClient serviceClient = new BlobServiceClientBuilder()
                 .connectionString(connectStr)

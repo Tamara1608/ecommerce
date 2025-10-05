@@ -23,6 +23,8 @@ public class FlashSaleService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final CouponService couponService;
+
 
     public String buyProducts(BuyRequest request) {
         User user = userRepository.findById(request.getUserId())
@@ -34,6 +36,7 @@ public class FlashSaleService {
 
         List<OrderItem> items = new ArrayList<>();
         StringBuilder result = new StringBuilder();
+        double totalCost = 0;
 
         for (BuyRequest.ProductOrder po : request.getProducts()) {
             String stockKey = STOCK_KEY_PREFIX + po.getProductId();
@@ -44,28 +47,43 @@ public class FlashSaleService {
                 Product product = productRepository.findById(po.getProductId())
                         .orElseThrow(() -> new RuntimeException("Product not found"));
 
-                OrderItem item = new OrderItem();
-                item.setOrder(order);
-                item.setProduct(product);
-                item.setQuantity(po.getQuantity());
+                OrderItem item = createOrderItem(order, product, po);
 
                 items.add(item);
 
                 result.append("Ordered ").append(po.getQuantity())
                         .append("x ").append(product.getName())
                         .append(". Remaining stock: ").append(stock).append("\n");
-            } else {
+
+            } else { // if stock < 0 or null
                 redisTemplate.opsForValue().increment(stockKey, po.getQuantity());
                 result.append(productRepository.findById(po.getProductId())
                                 .map(Product::getName).orElse("Unknown"))
                         .append(" is Sold Out!\n");
             }
         }
+        // Should I involve coupons or not ?
 
+        if (items.isEmpty()) {
+            return "No products could be ordered. All sold out.";
+        }
         order.setItems(items);
         orderRepository.save(order);
 
         return result.toString();
+    }
+
+    private OrderItem createOrderItem(Order o, Product p, BuyRequest.ProductOrder po){
+        OrderItem item = new OrderItem();
+        item.setOrder(o);
+        item.setProduct(p);
+        Integer quantity = po.getQuantity();
+        item.setQuantity(quantity);
+        double unitPrice = p.getPrice();
+        item.setUnitPrice(unitPrice);
+        item.setOrderItemPrice(unitPrice * quantity);
+
+        return item;
     }
 
 }

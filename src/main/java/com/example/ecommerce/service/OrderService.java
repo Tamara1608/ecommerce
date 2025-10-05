@@ -57,11 +57,13 @@ public class OrderService {
                                 item.getProduct().getTotalStock(),
                                 item.getProduct().getPercentageOff(),
                                 item.getProduct().getImageLink()
-                        )
+                        ),
+                        item.getUnitPrice(),
+                        item.getOrderItemPrice()
                 ))
                 .toList();
 
-        return new OrderDTO(order.getId(), order.getOrderDate(), userDTO, items);
+        return new OrderDTO(order.getId(), order.getOrderDate(), userDTO, items, order.getCouponApplied(),order.getDiscountAmount(),order.getTotalCost());
     }
 
 }

@@ -26,4 +26,12 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items;
+
+    @Column(nullable = true)
+    private String couponApplied;
+
+    @Column(nullable = true)
+    private Integer discountAmount;
+
+    private Double totalCost;
 }
