@@ -30,8 +30,5 @@ public class Order {
     @Column(nullable = true)
     private String couponApplied;
 
-    @Column(nullable = true)
-    private Integer discountAmount;
-
     private Double totalCost;
 }
