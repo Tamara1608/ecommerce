@@ -18,6 +18,7 @@ public class ProductController {
     public List<Product> getAllProductsFromCache() {
         return productService.getAllProductsFromCache();
     }
+
     @GetMapping()
     public List<Product> getAllProducts() {
         return productService.getAllProducts();
@@ -27,6 +28,7 @@ public class ProductController {
     public Product createProduct(@RequestBody Product product) {
         return productService.createProduct(product);
     }
+
     @GetMapping("/db/{id}")
     public Product getProductFromDb(@PathVariable Long id) {
         return productService.getProductFromDB(id);

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table
+@Table(name = "stocks")
 public class Stock {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,7 +22,7 @@ public class Stock {
 
     private LocalDateTime updatedAt; // only updated when total stock is set!
 
-    @ManyToOne(fetch = FetchType.LAZY) // I only fetch the product here when call - stock.getProduct();
+    @OneToOne(fetch = FetchType.LAZY) // I only fetch the product here when call - stock.getProduct();
     @JoinColumn(name = "product_id")
     private Product product;
 }

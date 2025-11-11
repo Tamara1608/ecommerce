@@ -17,7 +17,7 @@ public class OrderDTO {
     private UserDTO user;
     private List<OrderItemDTO> items;
     private String couponApplied;
-    private Integer discountAmount;
+//    private Integer discountAmount;
     private Double totalCost;
 }
 

@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,7 +15,6 @@ public class ProductDTO {
     private String name;
     private String description;
     private Double price;
-    private Integer totalStock;
-    private Integer percentageOff;
-    private String imageURL;
+    private Integer discount;
+    private String imageLink;
 }

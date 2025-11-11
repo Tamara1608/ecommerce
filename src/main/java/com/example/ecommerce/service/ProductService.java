@@ -2,6 +2,7 @@ package com.example.ecommerce.service;
 
 import com.example.ecommerce.DTO.ProductDTO;
 import com.example.ecommerce.entity.Product;
+import com.example.ecommerce.entity.Stock;
 import com.example.ecommerce.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,7 +26,6 @@ public class ProductService {
     private final String STOCK_KEY_PREFIX = "stock:";
     private final String PRODUCT_IDS_KEY = "products:all_ids";
 
-
     // -------------------
     // GET from DB directly
     // -------------------
@@ -40,39 +40,14 @@ public class ProductService {
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
+
     // -------------------
     // GET from Cache + Fallback
     // -------------------
 
-//    public List<Product> getAllProductsFromCache() {
-//
-//        Set<String> keys = redisTemplate.keys(PRODUCT_KEY_PREFIX + "*");
-//        if (keys.isEmpty()) {
-//            return Collections.emptyList();
-//        }
-//
-//        List<Object> cachedObjects = redisTemplate.opsForValue().multiGet(keys);
-//        if (cachedObjects == null) {
-//            return Collections.emptyList();
-//        }
-//
-//        List<Product> products = new ArrayList<>();
-//        for (Object obj : cachedObjects) {
-//            if (obj instanceof ProductDTO dto) {
-//                Integer stock = (Integer) redisTemplate.opsForValue()
-//                        .get(STOCK_KEY_PREFIX + dto.getId());
-//
-//                Product product = createProduct(dto, stock);
-//
-//                products.add(product);
-//            }
-//        }
-//
-//        return products;
-//    }
-
     public List<Product> getAllProductsFromCache() {
         Set<Object> ids = redisTemplate.opsForSet().members(PRODUCT_IDS_KEY);
+
         if (ids == null || ids.isEmpty()) {
             return Collections.emptyList();
         }
@@ -89,7 +64,6 @@ public class ProductService {
                         .get(STOCK_KEY_PREFIX + dto.getId());
 
                 Product p = createProduct(dto, stock);
-
                 products.add(p);
             }
         }
@@ -101,6 +75,7 @@ public class ProductService {
     public Product getProductFromCache(Long productId) {
         String productKey = PRODUCT_KEY_PREFIX + productId;
         Object cached = redisTemplate.opsForValue().get(productKey);
+
         if (cached != null) {
             ProductDTO dto = (ProductDTO) cached;
 
@@ -108,7 +83,6 @@ public class ProductService {
             Integer stock = (Integer) redisTemplate.opsForValue().get(STOCK_KEY_PREFIX + productId);
 
             // Convert back to Product entity for API response
-
             return createProduct(dto, stock);
         }
 
@@ -153,9 +127,9 @@ public class ProductService {
 
     }
 
-    // -------------------
+    // --------------------
     // Helper methods
-    // -------------------
+    // --------------------
 
     private void cacheProduct(Product product) {
         String productKey = PRODUCT_KEY_PREFIX + product.getId();
@@ -166,15 +140,19 @@ public class ProductService {
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
-                product.getTotalStock(),
-                product.getPercentageOff(),
+                product.getDiscount(),
                 product.getImageLink()
         );
 
         redisTemplate.opsForValue().set(productKey, dto); // metadata
-        redisTemplate.opsForValue().set(STOCK_KEY_PREFIX + product.getId(), product.getStock()); //stock
         redisTemplate.opsForSet().add(PRODUCT_IDS_KEY, product.getId().toString()); //all keys
 
+        // Cache stock separately (if available)
+        if (product.getStock() != null) {
+            Integer currentStock = (product.getStock().getCurrentValue() != null)
+                    ? product.getStock().getCurrentValue() : 0;
+            redisTemplate.opsForValue().set(STOCK_KEY_PREFIX + product.getId(), currentStock);
+        }
     }
 
     private void removeProductFromCache(Long productId) {
@@ -185,16 +163,24 @@ public class ProductService {
     }
 
     private Product createProduct(ProductDTO dto, Integer stock) {
+
         Product product = new Product();
+
         product.setId(dto.getId());
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
-        product.setTotalStock(dto.getTotalStock());
-        product.setPercentageOff(dto.getPercentageOff());
-        product.setImageLink(dto.getImageURL());
-        product.setStock(stock != null ? stock : 0);
+        product.setDiscount(dto.getDiscount());
+        product.setImageLink(dto.getImageLink());
+
+        Stock s = new Stock();
+        s.setCurrentValue(stock);
+        s.setTotalStock(stock);
+
+        product.setStock(s);
+
         return product;
     }
 
 }
+

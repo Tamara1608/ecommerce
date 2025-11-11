@@ -54,8 +54,7 @@ public class OrderService {
                                 item.getProduct().getName(),
                                 item.getProduct().getDescription(),
                                 item.getProduct().getPrice(),
-                                item.getProduct().getTotalStock(),
-                                item.getProduct().getPercentageOff(),
+                                item.getProduct().getDiscount(),
                                 item.getProduct().getImageLink()
                         ),
                         item.getUnitPrice(),
@@ -63,7 +62,7 @@ public class OrderService {
                 ))
                 .toList();
 
-        return new OrderDTO(order.getId(), order.getOrderDate(), userDTO, items, order.getCouponApplied(),order.getDiscountAmount(),order.getTotalCost());
+        return new OrderDTO(order.getId(), order.getOrderDate(), userDTO, items, order.getCouponApplied(),order.getTotalCost());
     }
 
 }

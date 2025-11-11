@@ -20,6 +20,7 @@ public class UserController {
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
+
     @PostMapping("/user")
     public User createUser(@RequestParam String username, @RequestParam String email, @RequestParam String password) {
         return userService.createUser(username, email, password);

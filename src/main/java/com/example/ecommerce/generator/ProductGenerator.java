@@ -1,11 +1,13 @@
 package com.example.ecommerce.generator;
 
 import com.example.ecommerce.entity.Product;
+import com.example.ecommerce.entity.Stock;
 import com.example.ecommerce.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -31,19 +33,28 @@ public class ProductGenerator implements CommandLineRunner {
                 Product product = new Product();
                 product.setName("Product " + i);
                 product.setDescription("This is the description for product " + i);
-                product.setPrice(ThreadLocalRandom.current().nextDouble(5.0, 500.0));
 
-                int totalStock = ThreadLocalRandom.current().nextInt(10, 101); // totalStock between 10-100
-                product.setTotalStock(totalStock);
+                double price = ThreadLocalRandom.current().nextDouble(5.0, 500.0);
+                price = Math.round(price * 100.0) / 100.0;  // round to 2 decimal places
+                product.setPrice(price);
 
-                int stock = ThreadLocalRandom.current().nextInt(0, totalStock + 1); // current stock <= totalStock
-                product.setStock(stock);
-
-                int percentageOff = ThreadLocalRandom.current().nextInt(0, 71);
-                product.setPercentageOff(percentageOff);
-
+                int discount = ThreadLocalRandom.current().nextInt(0, 8 + 1) * 10;  // 0,10,20,...,80
+                product.setDiscount(discount);
                 String imageLink = azureImageLinks.get(ThreadLocalRandom.current().nextInt(azureImageLinks.size()));
                 product.setImageLink(imageLink);
+
+
+                // creating stocks
+                int totalStock = ThreadLocalRandom.current().nextInt(10, 101); // totalStock between 10-100
+                int currentStock = ThreadLocalRandom.current().nextInt(0, totalStock + 1); // current stock <= totalStock
+
+                Stock stock = new Stock();
+                stock.setTotalStock(totalStock);
+                stock.setCurrentValue(currentStock);
+                stock.setUpdatedAt(LocalDateTime.now());
+                stock.setProduct(product);
+
+                product.setStock(stock);
 
                 productRepository.save(product);
             }
