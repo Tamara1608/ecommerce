@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+api-requests.http/
 .env
 
 ### STS ###
@@ -14,6 +15,8 @@ target/
 .settings
 .springBeans
 .sts4-cache
+
+.api
 
 ### IntelliJ IDEA ###
 .idea
