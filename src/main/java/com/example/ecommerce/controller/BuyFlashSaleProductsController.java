@@ -11,9 +11,9 @@ import org.springframework.http.HttpStatus;
 import jakarta.servlet.http.HttpSession;
 
 @RestController
-@RequestMapping("/flashsale")
+@RequestMapping("/buy-flash-sale-products")
 @RequiredArgsConstructor
-public class FlashSaleController {
+public class BuyFlashSaleProductsController {
     private final FlashSaleService flashSaleService;
     private final AuthService authService;
 
