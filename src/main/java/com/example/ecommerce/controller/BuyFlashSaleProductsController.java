@@ -11,11 +11,12 @@ import org.springframework.http.HttpStatus;
 import jakarta.servlet.http.HttpSession;
 
 @RestController
-@RequestMapping("/buy-flash-sale-products")
+@RequestMapping("/flashsale")
 @RequiredArgsConstructor
 public class BuyFlashSaleProductsController {
     private final FlashSaleService flashSaleService;
     private final AuthService authService;
+
 
     @PostMapping("/buy")
     public ResponseEntity<String> buy(@RequestBody BuyRequest request, HttpSession session) {
