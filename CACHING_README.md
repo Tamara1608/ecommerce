@@ -21,7 +21,7 @@ This document describes the Redis caching strategies implemented for **Product**
 Product caching uses a **multi-layered approach** to optimize performance and avoid N+1 query problems:
 
 - **Metadata Caching**: Product metadata (DTO) stored separately from stock
-- **Stock Caching**: Stock values cached independently for atomic operations
+- **Stock Caching**: Current stock values cached in Redis (no DB queries)
 - **Bulk List Caching**: All products list cached to avoid N+1 problems
 
 ### Cache Structure
@@ -44,14 +44,14 @@ Product caching uses a **multi-layered approach** to optimize performance and av
 
 #### 2. Stock Values
 - **Key Pattern**: `stock:{productId}`
-- **Value Type**: `Integer`
+- **Value Type**: `Integer` (currentStock only)
 - **TTL**: No expiration (manual invalidation)
-- **Purpose**: Atomic stock operations (increment/decrement) for flash sales
+- **Purpose**: Fast stock retrieval from Redis (no DB queries)
 
 #### 3. All Product IDs Set
 - **Key**: `products:all_ids`
 - **Value Type**: Redis Set
-- **Purpose**: Track all cached product IDs for reconstruction if needed
+- **Purpose**: Track all cached product IDs
 
 #### 4. All Products List (Optimized)
 - **Key**: `products:all_list`
@@ -61,37 +61,66 @@ Product caching uses a **multi-layered approach** to optimize performance and av
 
 ### How It Works
 
-#### Fetching All Products
+#### Fetching All Products from Cache
 
 ```java
+// Service method: getAllProductsFromCache()
+
 // 1. Try to get cached list (single Redis call)
 List<ProductDTO> cachedDTOs = redis.get("products:all_list");
 
 if (cachedDTOs != null) {
-    // 2. Batch fetch all stock values (single Redis multiGet call)
-    List<Integer> stocks = redis.multiGet(["stock:1", "stock:2", ...]);
+    // 2. Batch fetch all stock values from Redis (single multiGet call)
+    List<String> stockKeys = ["stock:1", "stock:2", ...];
+    List<Integer> stocks = redis.multiGet(stockKeys);
     
-    // 3. Convert DTOs to Products with stock
-    return convertDTOsToProducts(cachedDTOs, stocks);
+    // 3. Enrich DTOs with stock (only from Redis, no DB query)
+    return enrichDTOsWithStock(cachedDTOs, stocks);
 }
 
-// Fallback: Load from DB and cache
+// Cache miss: Load from DB, cache, and return
+List<Product> products = productRepository.findAllWithStock();
+cacheAllProducts(products);
+return convertProductsToResponseDTOs(products);
 ```
 
 **Performance**: 
-- **Before**: 1 + 2N Redis calls (1 for IDs, N for metadata, N for stock)
-- **After**: 2 Redis calls (1 for DTO list, 1 batch for all stock)
+- **Cache Hit**: 2 Redis calls (1 for DTO list, 1 batch for all stock)
+- **Cache Miss**: 1 DB query + 2 Redis calls (cache write)
+- **No N+1 Problem**: All stock fetched in single batch operation
 
-#### Fetching Single Product
+#### ProductResponseDTO Structure
 
 ```java
-// 1. Get metadata from cache
-ProductDTO dto = redis.get("products::{productId}");
+public class ProductResponseDTO {
+    private Long id;
+    private String name;
+    private String description;
+    private Double price;
+    private Integer discount;
+    private String imageLink;
+    private Integer currentStock;  // Only currentStock from Redis
+}
+```
 
-// 2. Get stock from cache
-Integer stock = redis.get("stock:{productId}");
+**Note**: Only `currentStock` is included (from Redis). `totalStock` is not cached or returned.
 
-// 3. Convert to Product entity
+#### Example: Cache Flow
+
+```java
+// GET /products (uses getAllProductsFromCache)
+
+// Step 1: Check cache
+List<ProductDTO> dtos = redis.get("products:all_list");
+// Returns: [ProductDTO(id=1, name="Laptop", ...), ...]
+
+// Step 2: Batch fetch stock from Redis
+List<Integer> stocks = redis.multiGet(["stock:1", "stock:2", "stock:3"]);
+// Returns: [10, 5, 20]
+
+// Step 3: Enrich and return
+List<ProductResponseDTO> response = enrichDTOsWithStock(dtos, stocks);
+// Returns: [ProductResponseDTO(id=1, name="Laptop", currentStock=10, ...), ...]
 ```
 
 ### Cache Invalidation
@@ -330,22 +359,19 @@ Total: 1 + 2N Redis calls
 ```
 1. Get all products list (1 Redis call)
 2. Batch get all stock values (1 Redis multiGet call)
-Total: 2 Redis calls
+Total: 2 Redis calls (no DB queries!)
 ```
 
-#### Problem: Converting DTOs to Products
-**Before:**
+#### Stock Enrichment (No DB Queries)
+**Current Implementation:**
 ```
-For each DTO:
-  - Get stock (N Redis calls)
-Total: N Redis calls
+1. Get ProductDTOs from cache (1 Redis call)
+2. Batch get all currentStock values (1 Redis multiGet call)
+3. Enrich DTOs with stock from Redis only
+Total: 2 Redis calls, 0 DB queries
 ```
 
-**After:**
-```
-Batch get all stock values (1 Redis multiGet call)
-Total: 1 Redis call
-```
+**Key Improvement**: `enrichDTOsWithStock()` only fetches from Redis, eliminating DB queries for stock information.
 
 ### Cache Update Strategy
 
@@ -383,12 +409,13 @@ Total: 1 Redis call
 
 ```java
 // Service method
-List<Product> products = productService.getAllProductsFromCache();
+List<ProductResponseDTO> products = productService.getAllProductsFromCache();
 
 // Behind the scenes:
 // 1. Redis GET "products:all_list" → List<ProductDTO>
-// 2. Redis MGET ["stock:1", "stock:2", ...] → List<Integer>
-// 3. Convert DTOs + stocks → List<Product>
+// 2. Redis MGET ["stock:1", "stock:2", ...] → List<Integer> (currentStock)
+// 3. Enrich DTOs with stock → List<ProductResponseDTO>
+//    - No DB queries, all from Redis!
 ```
 
 ### Checking if Product is in Flash Sale

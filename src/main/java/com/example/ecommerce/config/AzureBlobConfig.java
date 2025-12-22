@@ -10,18 +10,14 @@ import org.springframework.context.annotation.Bean;
 @Configuration
 public class AzureBlobConfig {
 
-    @Value("${azure.storage.connection-string}")
-    private String connectionString;
-
-    @Value("${azure.storage.container-name}")
+    @Value("${azure.storage.container-name:your-container-name}")
     private String containerName;
 
-    @Value("${azure.storage.key}")
+    @Value("${azure.storage.key:your-account-key}")
     private String accountKey;
 
-    @Value("${azure.storage.account-name}")
+    @Value("${azure.storage.account-name:your-account-name}")
     private String accountName;
-
       
     @Bean
     public BlobContainerClient blobContainerClient() {

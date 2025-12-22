@@ -1,5 +1,6 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.DTO.ProductDTO;
 import com.example.ecommerce.DTO.ProductResponseDTO;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.service.ProductService;
@@ -16,7 +17,7 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("/cache")
-    public List<ProductResponseDTO> getAllProductsFromCache() {
+    public List<ProductDTO> getAllProductsFromCache() {
         return productService.getAllProductsFromCache();
     }
 

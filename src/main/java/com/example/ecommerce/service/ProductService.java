@@ -59,21 +59,24 @@ public class ProductService {
     // GET from Cache + Fallback (Returns DTOs with stock info)
     // -------------------
 
-    public List<ProductResponseDTO> getAllProductsFromCache() {
+    public List<ProductDTO> getAllProductsFromCache() {
         @SuppressWarnings("unchecked")
         List<ProductDTO> cachedDTOs = (List<ProductDTO>) redisTemplate.opsForValue().get(ALL_PRODUCTS_KEY);
 
         if (cachedDTOs != null && !cachedDTOs.isEmpty()) {
-            return enrichDTOsWithStock(cachedDTOs);
+            return cachedDTOs;
         }
     
         List<Product> products = productRepository.findAllWithStock();
         
         if (!products.isEmpty()) {
             cacheAllProducts(products);
+            return products.stream()
+                    .map(this::convertProductToDTO)
+                    .toList();
         }
         
-        return convertProductsToResponseDTOs(products);
+        return new ArrayList<>();
     }
 
   
@@ -150,14 +153,7 @@ public class ProductService {
         String productKey = PRODUCT_KEY_PREFIX + product.getId();
 
         // Convert to DTO
-        ProductDTO dto = new ProductDTO(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getDiscount(),
-                product.getImageLink()
-        );
+        ProductDTO dto = convertProductToDTO(product);
 
         redisTemplate.opsForValue().set(productKey, dto); // metadata
         redisTemplate.opsForSet().add(PRODUCT_IDS_KEY, product.getId().toString()); //all keys
@@ -173,70 +169,38 @@ public class ProductService {
     private void removeProductFromCache(Long productId) {
         redisTemplate.delete(PRODUCT_KEY_PREFIX + productId);
         redisTemplate.delete(STOCK_KEY_PREFIX + productId);
-        redisTemplate.opsForSet().remove(PRODUCT_IDS_KEY, productId.toString()); // Fix: remove from set, not delete key
+        redisTemplate.opsForSet().remove(PRODUCT_IDS_KEY, productId.toString()); 
     }
 
    
     private void cacheAllProducts(List<Product> products) {
-        // First, ensure all individual products are cached (metadata + stock)
         for (Product product : products) {
             cacheProduct(product);
         }
         
-        // Create DTO list for caching
-        List<ProductDTO> dtoList = new ArrayList<>();
-        for (Product product : products) {
-            ProductDTO dto = new ProductDTO(
-                    product.getId(),
-                    product.getName(),
-                    product.getDescription(),
-                    product.getPrice(),
-                    product.getDiscount(),
-                    product.getImageLink()
-            );
-            dtoList.add(dto);
-        }
-        
-        // Cache the DTO list (single Redis call for future getAllProductsFromCache calls)
+        List<ProductDTO> dtoList = products.stream()
+                .map(this::convertProductToDTO)
+                .toList();
         redisTemplate.opsForValue().set(ALL_PRODUCTS_KEY, dtoList);
     }
     
-  
-    private List<Product> convertDTOsToProducts(List<ProductDTO> dtos) {
-        if (dtos.isEmpty()) {
-            return new ArrayList<>();
-        }
-        
-        // Build list of all stock keys in the SAME ORDER as dtos
-        // This ensures stockValues[i] corresponds to dtos[i]
-        List<String> stockKeys = new ArrayList<>();
-        for (ProductDTO dto : dtos) {
-            stockKeys.add(STOCK_KEY_PREFIX + dto.getId());
-        }
-        
-        // Batch fetch all stock values in a single Redis call (avoids N+1 problem)
-        // multiGet() returns values in the SAME ORDER as stockKeys
-        List<Object> stockValues = redisTemplate.opsForValue().multiGet(stockKeys);
-        
-        // Convert DTOs to Products with their corresponding stock values
-        // Index i matches because: dtos[i] → stockKeys[i] → stockValues[i]
-        List<Product> products = new ArrayList<>();
-        for (int i = 0; i < dtos.size(); i++) {
-            ProductDTO dto = dtos.get(i);
-            // Get stock value from batch result (null if not found or key doesn't exist)
-            Integer stock = (stockValues != null && i < stockValues.size() && stockValues.get(i) != null)
-                    ? (Integer) stockValues.get(i)
-                    : null;
-            Product p = createProduct(dto, stock);
-            products.add(p);
-        }
-        
-        return products;
-    }
-
    
     private void invalidateAllProductsCache() {
         redisTemplate.delete(ALL_PRODUCTS_KEY);
+    }
+
+    /**
+     * Convert Product entity to ProductDTO (without stock information)
+     */
+    private ProductDTO convertProductToDTO(Product product) {
+        return new ProductDTO(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getDiscount(),
+                product.getImageLink()
+        );
     }
 
     private Product createProduct(ProductDTO dto, Integer stock) {
@@ -270,25 +234,22 @@ public class ProductService {
                 .map(ProductDTO::getId)
                 .toList();
 
-        // Batch fetch currentStock from Redis (single call) - no DB query!
         List<String> stockKeys = productIds.stream()
                 .map(id -> STOCK_KEY_PREFIX + id)
                 .toList();
         List<Object> currentStockValues = redisTemplate.opsForValue().multiGet(stockKeys);
 
-        // Enrich DTOs with stock information from Redis only
         List<ProductResponseDTO> responseDTOs = new ArrayList<>();
         for (int i = 0; i < dtos.size(); i++) {
             ProductDTO dto = dtos.get(i);
 
-            // Get currentStock from Redis (batch result)
+
             Integer currentStock = (currentStockValues != null 
                     && i < currentStockValues.size() 
                     && currentStockValues.get(i) != null)
                     ? (Integer) currentStockValues.get(i)
                     : 0;
 
-            // Create ProductResponseDTO with stock information (only currentStock from Redis)
             ProductResponseDTO responseDTO = new ProductResponseDTO(
                     dto.getId(),
                     dto.getName(),
@@ -310,18 +271,16 @@ public class ProductService {
             return new ArrayList<>();
         }
 
-        // Extract product IDs
         List<Long> productIds = products.stream()
                 .map(Product::getId)
                 .toList();
 
-        // Batch fetch currentStock from Redis (single call)
+   
         List<String> stockKeys = productIds.stream()
                 .map(id -> STOCK_KEY_PREFIX + id)
                 .toList();
         List<Object> currentStockValues = redisTemplate.opsForValue().multiGet(stockKeys);
 
-        // Create ProductResponseDTOs with stock information
         List<ProductResponseDTO> responseDTOs = new ArrayList<>();
         for (int i = 0; i < products.size(); i++) {
             Product product = products.get(i);

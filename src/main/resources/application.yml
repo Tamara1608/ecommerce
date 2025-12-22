@@ -18,7 +18,7 @@ cache:
 
 azure:
   storage:
-    account-name: ${AZURE_STORAGE_ACCOUNT_NAME}
-    container-name: ${AZURE_STORAGE_CONTAINER_NAME}
-    connection-string: ${AZURE_STORAGE_CONNECTION_STRING}
-    key: ${AZURE_STORAGE_KEY:azure-storage-key}
+    account-name: ${AZURE_STORAGE_ACCOUNT_NAME:your-account-name}
+    container-name: ${AZURE_STORAGE_CONTAINER_NAME:your-container-name}
+    connection-string: ${AZURE_STORAGE_CONNECTION_STRING:DefaultEndpointsProtocol=https;AccountName=your-account-name;AccountKey=your-account-key;EndpointSuffix=core.windows.net}
+    key: ${AZURE_STORAGE_KEY:your-account-key}
