@@ -21,6 +21,5 @@ public class ProductResponseDTO {
     private Integer discount;
     private String imageLink;
     private Integer currentStock;  // Current stock from Redis cache
-    private Integer totalStock;    // Total stock from database
 }
 

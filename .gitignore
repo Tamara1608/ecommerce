@@ -6,6 +6,7 @@ target/
 
 api-requests.http/
 .env
+application-local.properties
 
 ### STS ###
 .apt_generated
