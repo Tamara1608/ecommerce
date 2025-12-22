@@ -1,9 +1,11 @@
 package com.example.ecommerce.service;
 
 import com.example.ecommerce.DTO.ProductDTO;
+import com.example.ecommerce.DTO.ProductResponseDTO;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.entity.Stock;
 import com.example.ecommerce.repository.ProductRepository;
+import com.example.ecommerce.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
@@ -14,12 +16,15 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
+    private final StockRepository stockRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final String PRODUCT_KEY_PREFIX = "products::";
@@ -31,89 +36,55 @@ public class ProductService {
     // GET from DB directly
     // -------------------
 
-    public Product getProductFromDB (Long id){
-        return productRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,  "Product not found!"
-                ));
+
+  
+    public List<ProductResponseDTO> getAllProductsFromDB() {
+        return productRepository.findAllWithStock()
+                .stream()
+                .map(product -> {
+                    Stock stock = product.getStock();
+
+                    return new ProductResponseDTO(
+                            product.getId(),
+                            product.getName(),
+                            product.getDescription(),
+                            product.getPrice(),
+                            product.getDiscount(),
+                            product.getImageLink(),
+                            stock != null ? stock.getCurrentValue() : null, 
+                            stock != null ? stock.getTotalStock() : null    
+                    );
+                })
+                .toList();
     }
 
+    // -------------------
+    // GET from Cache + Fallback (Returns DTOs with stock info)
+    // -------------------
 
+    public List<ProductResponseDTO> getAllProductsFromCache() {
+        // First try to get from cache (cache stores List<ProductDTO>, not ProductResponseDTO)
+        @SuppressWarnings("unchecked")
+        List<ProductDTO> cachedDTOs = (List<ProductDTO>) redisTemplate.opsForValue().get(ALL_PRODUCTS_KEY);
 
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
-    }
-
-    // Production version of API get products
-    public List<Product> getAllProductsProdVersion() {
-        // First try to get from cache
-        Object cached = redisTemplate.opsForValue().get(ALL_PRODUCTS_KEY);
-        if (cached instanceof List) {
-            @SuppressWarnings("unchecked")
-            List<ProductDTO> cachedDTOs = (List<ProductDTO>) cached;
-            if (cachedDTOs != null && !cachedDTOs.isEmpty()) {
-                return convertDTOsToProducts(cachedDTOs);
-            }
+        if (cachedDTOs != null && !cachedDTOs.isEmpty()) {
+            // Enrich DTOs with stock information to create ProductResponseDTOs
+            return enrichDTOsWithStock(cachedDTOs);
         }
+    
+        // Cache miss: fetch from DB, cache, and return
+        List<Product> products = productRepository.findAllWithStock();
         
-        // If not in cache, fetch from DB and cache it
-        List<Product> products = productRepository.findAll();
-        if (products != null && !products.isEmpty()) {
+        // Cache all products (individual products + list)
+        if (!products.isEmpty()) {
             cacheAllProducts(products);
         }
-        return products;
+        
+        // Convert to ProductResponseDTOs and return
+        return convertProductsToResponseDTOs(products);
     }
 
-    // -------------------
-    // GET from Cache + Fallback
-    // -------------------
-
-    public List<Product> getAllProductsFromCache() {
-        // First try to get the cached "all products" DTO list (single Redis call)
-        Object cached = redisTemplate.opsForValue().get(ALL_PRODUCTS_KEY);
-        if (cached instanceof List) {
-            @SuppressWarnings("unchecked")
-            List<ProductDTO> cachedDTOs = (List<ProductDTO>) cached;
-            if (cachedDTOs != null && !cachedDTOs.isEmpty()) {
-                // Convert DTOs to Products with stock
-                return convertDTOsToProducts(cachedDTOs);
-            }
-        }
-
-        // Fallback: try to reconstruct from individual product caches
-        Set<Object> ids = redisTemplate.opsForSet().members(PRODUCT_IDS_KEY);
-
-        if (ids == null || ids.isEmpty()) {
-            // If cache is empty, try to load from DB and cache
-            List<Product> dbProducts = productRepository.findAll();
-            if (dbProducts != null && !dbProducts.isEmpty()) {
-                cacheAllProducts(dbProducts);
-                return dbProducts;
-            }
-            return Collections.emptyList();
-        }
-
-        List<ProductDTO> dtos = new ArrayList<>();
-
-        for (Object idObj : ids) {
-            String idStr = idObj.toString();
-            String productKey = PRODUCT_KEY_PREFIX + idStr;
-
-            Object cachedProduct = redisTemplate.opsForValue().get(productKey);
-            if (cachedProduct instanceof ProductDTO dto) {
-                dtos.add(dto);
-            }
-        }
-
-        // Cache the reconstructed DTO list for future use (avoids N+1 on next call)
-        if (!dtos.isEmpty()) {
-            redisTemplate.opsForValue().set(ALL_PRODUCTS_KEY, dtos);
-            return convertDTOsToProducts(dtos);
-        }
-
-        return Collections.emptyList();
-    }
-
+  
     // Get product from Redis or fallback to DB
     public Product getProductFromCache(Long productId) {
         String productKey = PRODUCT_KEY_PREFIX + productId;
@@ -130,9 +101,15 @@ public class ProductService {
         }
 
         // Fallback to DB + write in cache
-        Product dbProduct = getProductFromDB(productId);
-        if (dbProduct != null) {cacheProduct(dbProduct);}
-        return dbProduct;
+        // Note: getProductFromDB now returns ProductResponseDTO, so we need to fetch Product entity separately
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Product not found!"
+                ));
+        if (product != null) {
+            cacheProduct(product);
+        }
+        return product;
     }
 
 
@@ -288,6 +265,123 @@ public class ProductService {
         product.setStock(s);
 
         return product;
+    }
+
+    // ====================
+    // DTO Enrichment Methods for ProductResponseDTO
+    // ====================
+
+    /**
+     * Enrich ProductDTOs with stock information to create ProductResponseDTOs
+     * Uses batch operations to avoid N+1 problem
+     */
+    private List<ProductResponseDTO> enrichDTOsWithStock(List<ProductDTO> dtos) {
+        if (dtos.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Extract product IDs
+        List<Long> productIds = dtos.stream()
+                .map(ProductDTO::getId)
+                .toList();
+
+        // Batch fetch currentStock from Redis (single call)
+        List<String> stockKeys = productIds.stream()
+                .map(id -> STOCK_KEY_PREFIX + id)
+                .toList();
+        List<Object> currentStockValues = redisTemplate.opsForValue().multiGet(stockKeys);
+
+        // Batch fetch totalStock from DB (single query by product IDs)
+        List<Stock> stocks = stockRepository.findByProductIds(productIds);
+        Map<Long, Integer> totalStockMap = stocks.stream()
+                .collect(Collectors.toMap(
+                        stock -> stock.getProduct().getId(),
+                        stock -> stock.getTotalStock() != null ? stock.getTotalStock() : 0
+                ));
+
+        // Enrich DTOs with stock information
+        List<ProductResponseDTO> responseDTOs = new ArrayList<>();
+        for (int i = 0; i < dtos.size(); i++) {
+            ProductDTO dto = dtos.get(i);
+            Long productId = dto.getId();
+
+            // Get currentStock from Redis (batch result)
+            Integer currentStock = (currentStockValues != null 
+                    && i < currentStockValues.size() 
+                    && currentStockValues.get(i) != null)
+                    ? (Integer) currentStockValues.get(i)
+                    : 0;
+
+            // Get totalStock from DB map
+            Integer totalStock = totalStockMap.getOrDefault(productId, 0);
+
+            // Create ProductResponseDTO with stock information
+            ProductResponseDTO responseDTO = new ProductResponseDTO(
+                    dto.getId(),
+                    dto.getName(),
+                    dto.getDescription(),
+                    dto.getPrice(),
+                    dto.getDiscount(),
+                    dto.getImageLink(),
+                    currentStock,
+                    totalStock
+            );
+            responseDTOs.add(responseDTO);
+        }
+
+        return responseDTOs;
+    }
+
+    /**
+     * Convert Product entities to ProductResponseDTOs with stock information
+     */
+    private List<ProductResponseDTO> convertProductsToResponseDTOs(List<Product> products) {
+        if (products.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Extract product IDs
+        List<Long> productIds = products.stream()
+                .map(Product::getId)
+                .toList();
+
+        // Batch fetch currentStock from Redis (single call)
+        List<String> stockKeys = productIds.stream()
+                .map(id -> STOCK_KEY_PREFIX + id)
+                .toList();
+        List<Object> currentStockValues = redisTemplate.opsForValue().multiGet(stockKeys);
+
+        // Create ProductResponseDTOs with stock information
+        List<ProductResponseDTO> responseDTOs = new ArrayList<>();
+        for (int i = 0; i < products.size(); i++) {
+            Product product = products.get(i);
+            
+            // Get currentStock from Redis (batch result)
+            Integer currentStock = (currentStockValues != null 
+                    && i < currentStockValues.size() 
+                    && currentStockValues.get(i) != null)
+                    ? (Integer) currentStockValues.get(i)
+                    : 0;
+
+            // Get totalStock from product's stock entity
+            Integer totalStock = (product.getStock() != null && product.getStock().getTotalStock() != null)
+                    ? product.getStock().getTotalStock()
+                    : 0;
+
+            ProductResponseDTO responseDTO = new ProductResponseDTO(
+                    product.getId(),
+                    product.getName(),
+                    product.getDescription(),
+                    product.getPrice(),
+                    product.getDiscount(),
+                    product.getImageLink(),
+                    currentStock,
+                    totalStock
+            );
+            responseDTOs.add(responseDTO);
+        }
+
+        return responseDTOs;
     }
 
 }

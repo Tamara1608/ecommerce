@@ -1,8 +1,7 @@
 package com.example.ecommerce.preloader;
 
 import com.example.ecommerce.DTO.ProductDTO;
-import com.example.ecommerce.entity.Product;
-import com.example.ecommerce.entity.Stock;
+import com.example.ecommerce.DTO.ProductResponseDTO;
 import com.example.ecommerce.service.ProductService;
 
 import java.util.List;
@@ -30,30 +29,34 @@ public class ProductPreload implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        Iterable<Product> products = productService.getAllProducts();
+        // getAllProducts() now returns List<ProductResponseDTO> (with stock info)
+        List<ProductResponseDTO> products = productService.getAllProductsFromDB();
         List<ProductDTO> productDTOList = new java.util.ArrayList<>();
 
-        for (Product p : products) {
-            Stock stock = p.getStock();
-            Integer currentStock = (stock != null && stock.getCurrentValue() != null) ? stock.getCurrentValue() : 0;
+        for (ProductResponseDTO responseDTO : products) {
+            // Extract currentStock from ProductResponseDTO
+            Integer currentStock = (responseDTO.getCurrentStock() != null) 
+                    ? responseDTO.getCurrentStock() 
+                    : 0;
 
-            ProductDTO dto = new ProductDTO (
-                    p.getId(),
-                    p.getName(),
-                    p.getDescription(),
-                    p.getPrice(),
-                    p.getDiscount(),
-                    p.getImageLink()
+            // Create ProductDTO (without stock fields) for metadata caching
+            ProductDTO dto = new ProductDTO(
+                    responseDTO.getId(),
+                    responseDTO.getName(),
+                    responseDTO.getDescription(),
+                    responseDTO.getPrice(),
+                    responseDTO.getDiscount(),
+                    responseDTO.getImageLink()
             );
 
-            // cache product metadata
-            redisTemplate.opsForValue().set(PRODUCT_KEY_PREFIX + p.getId(), dto);
+            // Cache product metadata (ProductDTO without stock)
+            redisTemplate.opsForValue().set(PRODUCT_KEY_PREFIX + responseDTO.getId(), dto);
 
-            // cache stock counter separately
-            redisTemplate.opsForValue().set(STOCK_KEY_PREFIX + p.getId(), currentStock);
+            // Cache stock counter separately
+            redisTemplate.opsForValue().set(STOCK_KEY_PREFIX + responseDTO.getId(), currentStock);
 
-            // cache for retrieving all ids of product entity
-            redisTemplate.opsForSet().add(PRODUCT_IDS_KEY, p.getId().toString());
+            // Cache for retrieving all ids of product entity
+            redisTemplate.opsForSet().add(PRODUCT_IDS_KEY, responseDTO.getId().toString());
             
             // Add DTO to list for caching all products
             productDTOList.add(dto);

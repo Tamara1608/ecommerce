@@ -1,5 +1,6 @@
 package com.example.ecommerce.service;
 import com.example.ecommerce.DTO.BuyRequest;
+import com.example.ecommerce.DTO.FlashSaleEventDTO;
 import com.example.ecommerce.entity.FlashSaleEvent;
 import com.example.ecommerce.entity.OrderItem;
 import com.example.ecommerce.entity.Order;
@@ -102,30 +103,25 @@ public class FlashSaleService {
     // Flash Sale Event CRUD Operations
     // ====================
 
-    /**
-     * Get all flash sales (not filtered by active status)
-     */
+  
     public List<FlashSaleEvent> getAllFlashSales() {
         return flashSaleEventRepository.findAll();
     }
 
-    /**
-     * Get flash sale by ID (returns any flash sale, not just active)
-     */
+  
     public Optional<FlashSaleEvent> getFlashSaleById(Long id) {
         return flashSaleEventRepository.findById(id);
     }
 
-    /**
-     * Create flash sale event and cache it with TTL
-     */
+   
     public FlashSaleEvent createFlashSale(FlashSaleEvent flashSaleEvent) {
         FlashSaleEvent saved = flashSaleEventRepository.save(flashSaleEvent);
         
         // Cache with TTL if it's active or will be active soon
         if (isActive(saved) || saved.getStartDate().isAfter(LocalDateTime.now())) {
             cacheFlashSale(saved);
-            // Invalidate active flash sales list cache
+            // Invalidate active flash sales list cache and rebuilds it 
+            // on call getActiveFlashSales()
             redisTemplate.delete(ACTIVE_FLASH_SALES_KEY);
         }
         
@@ -159,6 +155,7 @@ public class FlashSaleService {
     // TTL-Based Flash Sale Caching
     // ====================
 
+ 
     public void cacheFlashSale(FlashSaleEvent event) {
         String key = FLASH_SALE_PREFIX + event.getId();
         LocalDateTime now = LocalDateTime.now();
@@ -167,7 +164,9 @@ public class FlashSaleService {
         if (event.getEndDate().isAfter(now)) {
             Duration ttl = Duration.between(now, event.getEndDate());
             if (ttl.getSeconds() > 0) {
-                redisTemplate.opsForValue().set(key, event, ttl);
+                // Convert to DTO (only product IDs, not full entities)
+                FlashSaleEventDTO dto = convertToDTO(event);
+                redisTemplate.opsForValue().set(key, dto, ttl);
                 
                 cacheFlashSaleProducts(event);
             }
@@ -211,7 +210,9 @@ public class FlashSaleService {
             
             if (newTTL.getSeconds() > 0) {
                 // Update cache directly with new TTL (overwrites existing value)
-                redisTemplate.opsForValue().set(key, event, newTTL);
+                // Convert to DTO to avoid caching full Product entities
+                FlashSaleEventDTO dto = convertToDTO(event);
+                redisTemplate.opsForValue().set(key, dto, newTTL);
                 
                 // Update product mappings (handles product changes)
                 updateFlashSaleProductMappings(event, newTTL);
@@ -228,10 +229,7 @@ public class FlashSaleService {
         }
     }
 
-    /**
-     * Update product-to-flash-sale mappings when flash sale is updated
-     * Handles product additions and removals
-     */
+ 
     private void updateFlashSaleProductMappings(FlashSaleEvent event, Duration ttl) {
         String productsKey = FLASH_SALE_PRODUCTS_PREFIX + event.getId();
         
@@ -265,16 +263,14 @@ public class FlashSaleService {
         }
     }
 
-    /**
-     * Get active flash sale from cache or DB
-     * Returns Optional.empty() if flash sale is not active
-     */
+  
     public Optional<FlashSaleEvent> getActiveFlashSale(Long id) {
         String key = FLASH_SALE_PREFIX + id;
         Object cached = redisTemplate.opsForValue().get(key);
         
-        if (cached instanceof FlashSaleEvent event) {
-            // Double-check it's still active (cache might not have expired yet)
+        if (cached instanceof FlashSaleEventDTO dto) {
+            // Convert DTO back to entity and check if still active
+            FlashSaleEvent event = convertToEntity(dto);
             if (isActive(event)) {
                 return Optional.of(event);
             }
@@ -297,9 +293,10 @@ public class FlashSaleService {
         Object cached = redisTemplate.opsForValue().get(ACTIVE_FLASH_SALES_KEY);
         if (cached instanceof List) {
             @SuppressWarnings("unchecked")
-            List<FlashSaleEvent> events = (List<FlashSaleEvent>) cached;
-            // Filter to ensure they're still active (cache might not have expired)
-            return events.stream()
+            List<FlashSaleEventDTO> dtos = (List<FlashSaleEventDTO>) cached;
+            // Convert DTOs to entities and filter to ensure they're still active
+            return dtos.stream()
+                    .map(this::convertToEntity)
                     .filter(this::isActive)
                     .toList();
         }
@@ -320,7 +317,11 @@ public class FlashSaleService {
                     .min(Duration::compareTo);
             
             if (shortestTTL.isPresent() && shortestTTL.get().getSeconds() > 0) {
-                redisTemplate.opsForValue().set(ACTIVE_FLASH_SALES_KEY, activeEvents, shortestTTL.get());
+                // Cache as DTOs (not full entities)
+                List<FlashSaleEventDTO> dtos = activeEvents.stream()
+                        .map(this::convertToDTO)
+                        .toList();
+                redisTemplate.opsForValue().set(ACTIVE_FLASH_SALES_KEY, dtos, shortestTTL.get());
             }
             
             // Cache individual flash sales
@@ -330,19 +331,19 @@ public class FlashSaleService {
         return activeEvents;
     }
 
-    /**
-     * Check if a product is in any active flash sale
-     */
     public boolean isProductInActiveFlashSale(Long productId) {
-        // Check reverse mapping cache first
+        // Check reverse mapping cache first (fastest - O(1) lookup)
         String productKey = PRODUCT_FLASH_SALE_PREFIX + productId;
         Object flashSaleId = redisTemplate.opsForValue().get(productKey);
         
         if (flashSaleId instanceof Long id) {
-            Optional<FlashSaleEvent> flashSale = getActiveFlashSale(id);
-            if (flashSale.isPresent()) {
-                return flashSale.get().getProducts().stream()
-                        .anyMatch(p -> p.getId().equals(productId));
+            // Verify the flash sale is still active by checking the DTO (no entity conversion needed)
+            String flashSaleKey = FLASH_SALE_PREFIX + id;
+            Object cached = redisTemplate.opsForValue().get(flashSaleKey);
+            if (cached instanceof FlashSaleEventDTO dto) {
+                if (isActive(dto) && dto.getProductIds().contains(productId)) {
+                    return true;
+                }
             }
         }
         
@@ -357,15 +358,20 @@ public class FlashSaleService {
      * Get flash sale event for a specific product (if in active flash sale)
      */
     public Optional<FlashSaleEvent> getFlashSaleForProduct(Long productId) {
-        // Check reverse mapping cache
+        // Check reverse mapping cache (fastest - O(1) lookup)
         String productKey = PRODUCT_FLASH_SALE_PREFIX + productId;
         Object flashSaleId = redisTemplate.opsForValue().get(productKey);
         
         if (flashSaleId instanceof Long id) {
-            Optional<FlashSaleEvent> flashSale = getActiveFlashSale(id);
-            if (flashSale.isPresent() && flashSale.get().getProducts().stream()
-                    .anyMatch(p -> p.getId().equals(productId))) {
-                return flashSale;
+            // Get flash sale from cache and verify it's active and contains the product
+            String flashSaleKey = FLASH_SALE_PREFIX + id;
+            Object cached = redisTemplate.opsForValue().get(flashSaleKey);
+            if (cached instanceof FlashSaleEventDTO dto) {
+                // Check if active and contains product (using DTO directly - more efficient)
+                if (isActive(dto) && dto.getProductIds().contains(productId)) {
+                    // Convert to entity only when needed (for return value)
+                    return Optional.of(convertToEntity(dto));
+                }
             }
         }
         
@@ -382,8 +388,10 @@ public class FlashSaleService {
         Object cached = redisTemplate.opsForValue().get(ACTIVE_FLASH_SALES_KEY);
         if (cached instanceof List) {
             @SuppressWarnings("unchecked")
-            List<FlashSaleEvent> events = (List<FlashSaleEvent>) cached;
-            return events.stream().anyMatch(this::isActive);
+            List<FlashSaleEventDTO> dtos = (List<FlashSaleEventDTO>) cached;
+            return dtos.stream()
+                    .map(this::convertToEntity)
+                    .anyMatch(this::isActive);
         }
         
         // Fallback to DB check
@@ -396,11 +404,54 @@ public class FlashSaleService {
         return event.getStartDate().isBefore(now) && event.getEndDate().isAfter(now);
     }
 
+    // Check if flash sale DTO is currently active (between startDate and endDate)
+    private boolean isActive(FlashSaleEventDTO dto) {
+        LocalDateTime now = LocalDateTime.now();
+        return dto.getStartDate().isBefore(now) && dto.getEndDate().isAfter(now);
+    }
+
     public void invalidateFlashSaleCache(Long flashSaleId) {
         redisTemplate.delete(FLASH_SALE_PREFIX + flashSaleId);
         redisTemplate.delete(FLASH_SALE_PRODUCTS_PREFIX + flashSaleId);
         redisTemplate.delete(ACTIVE_FLASH_SALES_KEY);
         
+    }
+
+    // ====================
+    // Helper Methods: DTO Conversion
+    // ====================
+
+    private FlashSaleEventDTO convertToDTO(FlashSaleEvent event) {
+        Set<Long> productIds = event.getProducts().stream()
+                .map(Product::getId)
+                .collect(Collectors.toSet());
+        
+        return new FlashSaleEventDTO(
+                event.getId(),
+                event.getName(),
+                event.getStartDate(),
+                event.getEndDate(),
+                productIds
+        );
+    }
+
+
+    private FlashSaleEvent convertToEntity(FlashSaleEventDTO dto) {
+        FlashSaleEvent event = new FlashSaleEvent();
+        event.setId(dto.getId());
+        event.setName(dto.getName());
+        event.setStartDate(dto.getStartDate());
+        event.setEndDate(dto.getEndDate());
+        
+        // Fetch Product entities from repository using IDs
+        Set<Product> products = dto.getProductIds().stream()
+                .map(productRepository::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
+        
+        event.setProducts(products);
+        return event;
     }
 
 }
