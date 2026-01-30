@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,8 +22,4 @@ public class Stock {
     private Integer currentValue; // kept in redis
 
     private LocalDateTime updatedAt; // only updated when total stock is set!
-
-    @OneToOne(fetch = FetchType.LAZY) // I only fetch the product here when call - stock.getProduct();
-    @JoinColumn(name = "product_id")
-    private Product product;
 }

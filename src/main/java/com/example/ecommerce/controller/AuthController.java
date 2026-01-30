@@ -1,3 +1,4 @@
+/*
 package com.example.ecommerce.controller;
 
 import com.example.ecommerce.DTO.LoginRequest;
@@ -40,5 +41,4 @@ public class AuthController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in"));
     }
 }
-
-
+*/

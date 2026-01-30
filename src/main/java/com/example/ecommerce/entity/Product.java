@@ -35,7 +35,8 @@ public class Product implements Serializable {
     )
     private Set<Category> categories = new HashSet<>();
 
-    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "stock_id")
     private Stock stock;
 
     @ManyToMany(mappedBy = "products")

@@ -1,6 +1,7 @@
 package com.example.ecommerce.service;
 import com.example.ecommerce.DTO.BuyRequest;
 import com.example.ecommerce.DTO.FlashSaleEventDTO;
+import com.example.ecommerce.Product.ProductTable;
 import com.example.ecommerce.entity.FlashSaleEvent;
 import com.example.ecommerce.entity.OrderItem;
 import com.example.ecommerce.entity.Order;
@@ -8,8 +9,8 @@ import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.entity.User;
 import com.example.ecommerce.repository.FlashSaleEventRepository;
 import com.example.ecommerce.repository.OrderRepository;
-import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class FlashSaleService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
-    private final ProductRepository productRepository;
+    private final ProductTable productRepository;
     private final FlashSaleEventRepository flashSaleEventRepository;
     // private final CouponService couponService;
 

@@ -1,3 +1,4 @@
+/*
 package com.example.ecommerce.controller;
 
 import com.example.ecommerce.DTO.ProductDTO;
@@ -52,3 +53,4 @@ public class ProductController {
         return productService.deleteProduct(id);
     }
 }
+*/

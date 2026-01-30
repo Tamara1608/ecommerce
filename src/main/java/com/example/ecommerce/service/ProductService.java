@@ -2,10 +2,11 @@ package com.example.ecommerce.service;
 
 import com.example.ecommerce.DTO.ProductDTO;
 import com.example.ecommerce.DTO.ProductResponseDTO;
+import com.example.ecommerce.Product.ProductTable;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.entity.Stock;
-import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.StockRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ProductService {
-    private final ProductRepository productRepository;
+    private final ProductTable productRepository;
     private final StockRepository stockRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 

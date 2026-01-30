@@ -1,8 +1,9 @@
 package com.example.ecommerce.generator;
 
+import com.example.ecommerce.Product.ProductTable;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.entity.Stock;
-import com.example.ecommerce.repository.ProductRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class ProductGenerator implements CommandLineRunner {
 
     @Autowired
-    private ProductRepository productRepository;
+    private ProductTable productRepository;
 
     // Example: replace these with actual Azure image URLs
     private final List<String> azureImageLinks = List.of(
@@ -52,7 +53,7 @@ public class ProductGenerator implements CommandLineRunner {
                 stock.setTotalStock(totalStock);
                 stock.setCurrentValue(currentStock);
                 stock.setUpdatedAt(LocalDateTime.now());
-                stock.setProduct(product);
+               
 
                 product.setStock(stock);
 
