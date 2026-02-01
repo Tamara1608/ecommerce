@@ -1,7 +1,8 @@
 package com.example.ecommerce.Order;
 
-import com.example.ecommerce.entity.Order;
 import org.springframework.lang.NonNull;
+
+import com.example.ecommerce.Order.entity.Order;
 
 import java.util.List;
 import java.util.Optional;

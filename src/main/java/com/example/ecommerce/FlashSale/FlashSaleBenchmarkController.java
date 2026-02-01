@@ -1,9 +1,9 @@
 package com.example.ecommerce.FlashSale;
 
-import com.example.ecommerce.DTO.BuyRequest;
-import com.example.ecommerce.entity.FlashSaleEvent;
-import com.example.ecommerce.entity.User;
-import com.example.ecommerce.repository.UserRepository;
+import com.example.ecommerce.FlashSale.BuyRequest;
+import com.example.ecommerce.FlashSale.entity.FlashSaleEvent;
+import com.example.ecommerce.User.IUserRepository;
+import com.example.ecommerce.User.entity.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,15 +25,18 @@ public class FlashSaleBenchmarkController {
     
     private final FlashSaleService dbFlashSaleService;
     private final FlashSaleService cachedFlashSaleService;
-    private final UserRepository userRepository;
+    private final IUserRepository dbUserRepository;
+    private final IUserRepository cachedUserRepository;
     
     public FlashSaleBenchmarkController(
             @Qualifier("dbFlashSaleService") FlashSaleService dbFlashSaleService,
             @Qualifier("cachedFlashSaleService") FlashSaleService cachedFlashSaleService,
-            UserRepository userRepository) {
+            @Qualifier("dbUserRepository") IUserRepository dbUserRepository,
+            @Qualifier("cachedUserRepository") IUserRepository cachedUserRepository) {
         this.dbFlashSaleService = dbFlashSaleService;
         this.cachedFlashSaleService = cachedFlashSaleService;
-        this.userRepository = userRepository;
+        this.dbUserRepository = dbUserRepository;
+        this.cachedUserRepository = cachedUserRepository;
     }
     
     // ===========================================
@@ -70,7 +73,7 @@ public class FlashSaleBenchmarkController {
     
     @PostMapping("/db/flashsales/buy")
     public ResponseEntity<Void> dbBuy(@RequestBody BuyRequest request) {
-        User user = userRepository.findById(request.getUserId())
+        User user = dbUserRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "User not found with id: " + request.getUserId()
                 ));
@@ -112,12 +115,82 @@ public class FlashSaleBenchmarkController {
     
     @PostMapping("/cached/flashsales/buy")
     public ResponseEntity<Void> cachedBuy(@RequestBody BuyRequest request) {
-        User user = userRepository.findById(request.getUserId())
+        User user = cachedUserRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "User not found with id: " + request.getUserId()
                 ));
         cachedFlashSaleService.buyProducts(user, request.getProducts());
         return ResponseEntity.ok().build();
+    }
+    
+    // ===========================================
+    // ACTIVE FLASH SALE ROUTES (DB)
+    // ===========================================
+    
+    @GetMapping("/db/flashsales/active")
+    public List<FlashSaleEvent> dbGetActiveFlashSales() {
+        return dbFlashSaleService.getActiveFlashSales();
+    }
+    
+    @GetMapping("/db/flashsales/active/{id}")
+    public ResponseEntity<FlashSaleEvent> dbGetActiveFlashSaleById(@PathVariable Long id) {
+        return dbFlashSaleService.getActiveFlashSale(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @GetMapping("/db/flashsales/check/active")
+    public ResponseEntity<java.util.Map<String, Boolean>> dbHasActiveFlashSale() {
+        boolean hasActive = dbFlashSaleService.hasActiveFlashSale();
+        return ResponseEntity.ok(java.util.Map.of("hasActiveFlashSale", hasActive));
+    }
+    
+    @GetMapping("/db/flashsales/product/{productId}/check")
+    public ResponseEntity<java.util.Map<String, Boolean>> dbIsProductInFlashSale(@PathVariable Long productId) {
+        boolean inFlashSale = dbFlashSaleService.isProductInActiveFlashSale(productId);
+        return ResponseEntity.ok(java.util.Map.of("inFlashSale", inFlashSale));
+    }
+    
+    @GetMapping("/db/flashsales/product/{productId}")
+    public ResponseEntity<FlashSaleEvent> dbGetFlashSaleForProduct(@PathVariable Long productId) {
+        return dbFlashSaleService.getFlashSaleForProduct(productId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // ===========================================
+    // ACTIVE FLASH SALE ROUTES (Cached)
+    // ===========================================
+    
+    @GetMapping("/cached/flashsales/active")
+    public List<FlashSaleEvent> cachedGetActiveFlashSales() {
+        return cachedFlashSaleService.getActiveFlashSales();
+    }
+    
+    @GetMapping("/cached/flashsales/active/{id}")
+    public ResponseEntity<FlashSaleEvent> cachedGetActiveFlashSaleById(@PathVariable Long id) {
+        return cachedFlashSaleService.getActiveFlashSale(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @GetMapping("/cached/flashsales/check/active")
+    public ResponseEntity<java.util.Map<String, Boolean>> cachedHasActiveFlashSale() {
+        boolean hasActive = cachedFlashSaleService.hasActiveFlashSale();
+        return ResponseEntity.ok(java.util.Map.of("hasActiveFlashSale", hasActive));
+    }
+    
+    @GetMapping("/cached/flashsales/product/{productId}/check")
+    public ResponseEntity<java.util.Map<String, Boolean>> cachedIsProductInFlashSale(@PathVariable Long productId) {
+        boolean inFlashSale = cachedFlashSaleService.isProductInActiveFlashSale(productId);
+        return ResponseEntity.ok(java.util.Map.of("inFlashSale", inFlashSale));
+    }
+    
+    @GetMapping("/cached/flashsales/product/{productId}")
+    public ResponseEntity<FlashSaleEvent> cachedGetFlashSaleForProduct(@PathVariable Long productId) {
+        return cachedFlashSaleService.getFlashSaleForProduct(productId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
 

@@ -1,8 +1,7 @@
 package com.example.ecommerce.Product;
 
-import com.example.ecommerce.entity.Product;
-import com.example.ecommerce.entity.Stock;
-import com.example.ecommerce.repository.StockRepository;
+import com.example.ecommerce.Product.entity.Product;
+import com.example.ecommerce.Product.entity.Stock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
@@ -23,7 +22,6 @@ import java.util.Optional;
 public class DatabaseProductRepository implements IProductRepository {
     
     private final ProductTable productTable;
-    private final StockRepository stockRepository;
     
     // -------------------
     // CREATE operations
@@ -98,9 +96,9 @@ public class DatabaseProductRepository implements IProductRepository {
             return Optional.empty();
         }
         
-        // Update stock quantity in database
+        // Update stock quantity in database via Product (cascades to Stock)
         stock.setCurrentValue(currentStock - quantity);
-        stockRepository.save(stock);
+        productTable.save(product);
         
         return Optional.of(product);
     }

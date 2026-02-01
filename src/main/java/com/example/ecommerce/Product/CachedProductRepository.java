@@ -1,11 +1,12 @@
 package com.example.ecommerce.Product;
 
-import com.example.ecommerce.entity.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
+
+import com.example.ecommerce.Product.entity.Product;
 
 import java.util.ArrayList;
 import java.util.List;

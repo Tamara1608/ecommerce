@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "ecommerce-benchmark-api",
 		"name": "E-Commerce Benchmark API",
-		"description": "Collection to test cached vs non-cached Product and FlashSale endpoints",
+		"description": "Complete collection to test cached vs non-cached endpoints for Products, Users, Flash Sales, Orders, and Coupons",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -24,6 +24,21 @@
 		{
 			"key": "userId",
 			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "couponId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "couponCode",
+			"value": "SAVE10",
 			"type": "string"
 		}
 	],
@@ -195,6 +210,314 @@
 			]
 		},
 		{
+			"name": "Users - Database",
+			"item": [
+				{
+					"name": "Get All Users (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "users"]
+						}
+					}
+				},
+				{
+					"name": "Get User by ID (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "users", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Create User (DB)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/users?username=testuser&email=test@example.com&password=password123",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "users"],
+							"query": [
+								{
+									"key": "username",
+									"value": "testuser"
+								},
+								{
+									"key": "email",
+									"value": "test@example.com"
+								},
+								{
+									"key": "password",
+									"value": "password123"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update User (DB)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"updateduser\",\n    \"email\": \"updated@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "users", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete User (DB)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "users", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Signup (DB)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"username\": \"johndoe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/auth/signup",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "auth", "signup"]
+						}
+					}
+				},
+				{
+					"name": "Login (DB)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"johndoe\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Logout (DB)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "auth", "logout"]
+						}
+					}
+				},
+				{
+					"name": "Get Current User (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "auth", "me"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Users - Cached",
+			"item": [
+				{
+					"name": "Get All Users (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "users"]
+						}
+					}
+				},
+				{
+					"name": "Get User by ID (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "users", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Create User (Cached)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/users?username=cacheduser&email=cached@example.com&password=password123",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "users"],
+							"query": [
+								{
+									"key": "username",
+									"value": "cacheduser"
+								},
+								{
+									"key": "email",
+									"value": "cached@example.com"
+								},
+								{
+									"key": "password",
+									"value": "password123"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update User (Cached)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"updateduserCached\",\n    \"email\": \"updatedCached@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "users", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete User (Cached)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "users", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Signup (Cached)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Doe\",\n    \"username\": \"janedoe\",\n    \"email\": \"jane@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/auth/signup",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "auth", "signup"]
+						}
+					}
+				},
+				{
+					"name": "Login (Cached)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"janedoe\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Logout (Cached)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "auth", "logout"]
+						}
+					}
+				},
+				{
+					"name": "Get Current User (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "auth", "me"]
+						}
+					}
+				}
+			]
+		},
+		{
 			"name": "Flash Sales - Database",
 			"item": [
 				{
@@ -293,6 +616,66 @@
 							"raw": "{{baseUrl}}/api/benchmark/db/flashsales/buy",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "benchmark", "db", "flashsales", "buy"]
+						}
+					}
+				},
+				{
+					"name": "Get Active Flash Sales (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/flashsales/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "flashsales", "active"]
+						}
+					}
+				},
+				{
+					"name": "Get Active Flash Sale by ID (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/flashsales/active/{{flashSaleId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "flashsales", "active", "{{flashSaleId}}"]
+						}
+					}
+				},
+				{
+					"name": "Check Has Active Flash Sale (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/flashsales/check/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "flashsales", "check", "active"]
+						}
+					}
+				},
+				{
+					"name": "Check Product In Flash Sale (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/flashsales/product/{{productId}}/check",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "flashsales", "product", "{{productId}}", "check"]
+						}
+					}
+				},
+				{
+					"name": "Get Flash Sale For Product (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/flashsales/product/{{productId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "flashsales", "product", "{{productId}}"]
 						}
 					}
 				}
@@ -399,9 +782,408 @@
 							"path": ["api", "benchmark", "cached", "flashsales", "buy"]
 						}
 					}
+				},
+				{
+					"name": "Get Active Flash Sales (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "flashsales", "active"]
+						}
+					}
+				},
+				{
+					"name": "Get Active Flash Sale by ID (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/active/{{flashSaleId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "flashsales", "active", "{{flashSaleId}}"]
+						}
+					}
+				},
+				{
+					"name": "Check Has Active Flash Sale (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/check/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "flashsales", "check", "active"]
+						}
+					}
+				},
+				{
+					"name": "Check Product In Flash Sale (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/product/{{productId}}/check",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "flashsales", "product", "{{productId}}", "check"]
+						}
+					}
+				},
+				{
+					"name": "Get Flash Sale For Product (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/product/{{productId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "flashsales", "product", "{{productId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders - Database",
+			"item": [
+				{
+					"name": "Get All Orders (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "orders"]
+						}
+					}
+				},
+				{
+					"name": "Get Order by ID (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/orders/{{orderId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "orders", "{{orderId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Orders by User (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/orders/user/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "orders", "user", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get All Orders Raw (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/orders/raw",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "orders", "raw"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders - Cached",
+			"item": [
+				{
+					"name": "Get All Orders (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "orders"]
+						}
+					}
+				},
+				{
+					"name": "Get Order by ID (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/orders/{{orderId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "orders", "{{orderId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Orders by User (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/orders/user/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "orders", "user", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get All Orders Raw (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/orders/raw",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "orders", "raw"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Coupons - Database",
+			"item": [
+				{
+					"name": "Get All Coupons (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/coupons",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "coupons"]
+						}
+					}
+				},
+				{
+					"name": "Get Coupon by ID (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/coupons/{{couponId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "coupons", "{{couponId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Coupon by Code (DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/coupons/code/{{couponCode}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "coupons", "code", "{{couponCode}}"]
+						}
+					}
+				},
+				{
+					"name": "Create Coupon (DB)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"SAVE10\",\n    \"discount\": 10,\n    \"validUntil\": \"2026-12-31T23:59:59\",\n    \"used\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/coupons",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "coupons"]
+						}
+					}
+				},
+				{
+					"name": "Update Coupon (DB)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"SAVE20\",\n    \"discount\": 20,\n    \"validUntil\": \"2026-12-31T23:59:59\",\n    \"used\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/coupons/{{couponId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "coupons", "{{couponId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Coupon (DB)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/coupons/{{couponId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "coupons", "{{couponId}}"]
+						}
+					}
+				},
+				{
+					"name": "Apply Coupon (DB)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/db/coupons/apply?code={{couponCode}}&userId={{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "db", "coupons", "apply"],
+							"query": [
+								{
+									"key": "code",
+									"value": "{{couponCode}}"
+								},
+								{
+									"key": "userId",
+									"value": "{{userId}}"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Coupons - Cached",
+			"item": [
+				{
+					"name": "Get All Coupons (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/coupons",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "coupons"]
+						}
+					}
+				},
+				{
+					"name": "Get Coupon by ID (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/coupons/{{couponId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "coupons", "{{couponId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Coupon by Code (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/coupons/code/{{couponCode}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "coupons", "code", "{{couponCode}}"]
+						}
+					}
+				},
+				{
+					"name": "Create Coupon (Cached)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"CACHED20\",\n    \"discount\": 20,\n    \"validUntil\": \"2026-12-31T23:59:59\",\n    \"used\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/coupons",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "coupons"]
+						}
+					}
+				},
+				{
+					"name": "Update Coupon (Cached)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"CACHED30\",\n    \"discount\": 30,\n    \"validUntil\": \"2026-12-31T23:59:59\",\n    \"used\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/coupons/{{couponId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "coupons", "{{couponId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Coupon (Cached)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/coupons/{{couponId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "coupons", "{{couponId}}"]
+						}
+					}
+				},
+				{
+					"name": "Apply Coupon (Cached)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/benchmark/cached/coupons/apply?code={{couponCode}}&userId={{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "benchmark", "cached", "coupons", "apply"],
+							"query": [
+								{
+									"key": "code",
+									"value": "{{couponCode}}"
+								},
+								{
+									"key": "userId",
+									"value": "{{userId}}"
+								}
+							]
+						}
+					}
 				}
 			]
 		}
 	]
 }
-

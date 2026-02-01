@@ -1,8 +1,10 @@
 package com.example.ecommerce.Order;
 
-import com.example.ecommerce.entity.Order;
-import com.example.ecommerce.entity.OrderItem;
-import com.example.ecommerce.entity.User;
+import com.example.ecommerce.Order.OrderDTO;
+import com.example.ecommerce.Order.entity.Order;
+import com.example.ecommerce.Order.entity.OrderItem;
+import com.example.ecommerce.User.entity.User;
+
 import org.springframework.lang.NonNull;
 
 import java.util.List;
@@ -42,5 +44,27 @@ public interface IOrderService {
      */
     @NonNull
     Order createOrderForUser(@NonNull User user, @NonNull List<OrderItem> items);
+    
+    // -------------------
+    // DTO Operations
+    // -------------------
+    
+    /**
+     * Get all orders as DTOs.
+     */
+    @NonNull
+    List<OrderDTO> getAllOrdersDTO();
+    
+    /**
+     * Get order by ID as DTO.
+     */
+    @NonNull
+    OrderDTO getOrderByIdDTO(@NonNull Long id);
+    
+    /**
+     * Get orders by user ID as DTOs.
+     */
+    @NonNull
+    List<OrderDTO> getOrdersByUserDTO(@NonNull Long userId);
 }
 

@@ -1,10 +1,11 @@
 package com.example.ecommerce.Order;
 
-import com.example.ecommerce.entity.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
+
+import com.example.ecommerce.Order.entity.Order;
 
 import java.util.List;
 import java.util.Optional;

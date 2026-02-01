@@ -1,7 +1,8 @@
 package com.example.ecommerce.FlashSale;
 
-import com.example.ecommerce.entity.FlashSaleEvent;
 import org.springframework.lang.NonNull;
+
+import com.example.ecommerce.FlashSale.entity.FlashSaleEvent;
 
 import java.util.List;
 import java.util.Optional;

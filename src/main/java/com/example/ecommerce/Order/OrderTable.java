@@ -1,9 +1,10 @@
 package com.example.ecommerce.Order;
 
-import com.example.ecommerce.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import com.example.ecommerce.Order.entity.Order;
 
 import java.util.List;
 

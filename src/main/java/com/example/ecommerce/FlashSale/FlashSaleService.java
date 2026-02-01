@@ -1,19 +1,21 @@
 package com.example.ecommerce.FlashSale;
 
-import com.example.ecommerce.DTO.BuyRequest;
+import com.example.ecommerce.FlashSale.BuyRequest;
+import com.example.ecommerce.FlashSale.entity.FlashSaleEvent;
 import com.example.ecommerce.Order.IOrderService;
+import com.example.ecommerce.Order.entity.OrderItem;
 import com.example.ecommerce.Product.IProductService;
-import com.example.ecommerce.entity.FlashSaleEvent;
-import com.example.ecommerce.entity.Order;
-import com.example.ecommerce.entity.OrderItem;
-import com.example.ecommerce.entity.Product;
-import com.example.ecommerce.entity.User;
+import com.example.ecommerce.Product.entity.Product;
+import com.example.ecommerce.User.entity.User;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service for FlashSaleEvent CRUD operations and flash sale purchases.
@@ -50,9 +52,6 @@ public class FlashSaleService {
     public void buyProducts(@NonNull User user, @NonNull List<BuyRequest.ProductOrder> productOrders) {
         List<OrderItem> items = new ArrayList<>();
         
-        Order tempOrder = new Order();
-        tempOrder.setUser(user);
-        
         for (BuyRequest.ProductOrder po : productOrders) {
             Product product = productService.returnIfInStock(po.getProductId(), po.getQuantity())
                     .orElseThrow(() -> new ResponseStatusException(
@@ -60,7 +59,6 @@ public class FlashSaleService {
                     ));
             
             OrderItem item = new OrderItem();
-            item.setOrder(tempOrder);
             item.setProduct(product);
             item.setQuantity(po.getQuantity());
             item.setUnitPrice(product.getPrice());
@@ -68,6 +66,7 @@ public class FlashSaleService {
             items.add(item);
         }
         
+        // createOrderForUser will create the Order and set the relationship on items
         orderService.createOrderForUser(user, items);
     }
     
@@ -111,6 +110,64 @@ public class FlashSaleService {
                         HttpStatus.NOT_FOUND, "Flash sale event not found with id: " + id
                 ));
         flashSaleRepository.delete(id);
+    }
+    
+    // -------------------
+    // Active Flash Sale Operations
+    // -------------------
+    
+    /**
+     * Get all active flash sales (currently running).
+     */
+    @NonNull
+    public List<FlashSaleEvent> getActiveFlashSales() {
+        return flashSaleRepository.findAll().stream()
+                .filter(this::isActive)
+                .toList();
+    }
+    
+    /**
+     * Get an active flash sale by ID.
+     */
+    @NonNull
+    public Optional<FlashSaleEvent> getActiveFlashSale(@NonNull Long id) {
+        return flashSaleRepository.findById(id)
+                .filter(this::isActive);
+    }
+    
+    /**
+     * Check if a product is in any active flash sale.
+     */
+    public boolean isProductInActiveFlashSale(@NonNull Long productId) {
+        return getActiveFlashSales().stream()
+                .anyMatch(sale -> sale.getProducts().stream()
+                        .anyMatch(p -> p.getId().equals(productId)));
+    }
+    
+    /**
+     * Get the flash sale event for a specific product (if in active flash sale).
+     */
+    @NonNull
+    public Optional<FlashSaleEvent> getFlashSaleForProduct(@NonNull Long productId) {
+        return getActiveFlashSales().stream()
+                .filter(sale -> sale.getProducts().stream()
+                        .anyMatch(p -> p.getId().equals(productId)))
+                .findFirst();
+    }
+    
+    /**
+     * Check if there are any active flash sales.
+     */
+    public boolean hasActiveFlashSale() {
+        return !getActiveFlashSales().isEmpty();
+    }
+    
+    /**
+     * Check if a flash sale is currently active (between startDate and endDate).
+     */
+    public boolean isActive(@NonNull FlashSaleEvent event) {
+        LocalDateTime now = LocalDateTime.now();
+        return event.getStartDate().isBefore(now) && event.getEndDate().isAfter(now);
     }
 }
 

@@ -1,13 +1,13 @@
 package com.example.ecommerce.Order;
 
-import com.example.ecommerce.entity.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
+import com.example.ecommerce.Order.entity.Order;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +45,20 @@ public class CachedOrderRepository implements IOrderRepository {
     @SuppressWarnings("unchecked")
     public List<Order> findAll() {
         List<Order> cached = (List<Order>) redisTemplate.opsForValue().get(ALL_ORDERS_KEY);
-        return cached != null ? cached : new ArrayList<>();
+        
+        if (cached != null) {
+            return cached;
+        }
+        
+        // Cache miss - fetch from database
+        List<Order> orders = orderTable.findAll();
+        
+        if (!orders.isEmpty()) {
+            redisTemplate.opsForValue().set(ALL_ORDERS_KEY, orders);
+            orders.forEach(this::cacheOrder);
+        }
+        
+        return orders;
     }
     
     @Override

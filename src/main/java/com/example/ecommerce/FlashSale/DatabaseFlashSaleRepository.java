@@ -1,10 +1,11 @@
 package com.example.ecommerce.FlashSale;
 
-import com.example.ecommerce.entity.FlashSaleEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
+
+import com.example.ecommerce.FlashSale.entity.FlashSaleEvent;
 
 import java.util.List;
 import java.util.Optional;

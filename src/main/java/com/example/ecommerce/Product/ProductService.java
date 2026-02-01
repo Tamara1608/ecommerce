@@ -1,9 +1,10 @@
 package com.example.ecommerce.Product;
 
-import com.example.ecommerce.entity.Product;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.example.ecommerce.Product.entity.Product;
 
 import java.util.List;
 import java.util.Optional;

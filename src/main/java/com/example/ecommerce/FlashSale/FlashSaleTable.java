@@ -1,8 +1,9 @@
 package com.example.ecommerce.FlashSale;
 
-import com.example.ecommerce.entity.FlashSaleEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+
+import com.example.ecommerce.FlashSale.entity.FlashSaleEvent;
 
 import java.util.List;
 
