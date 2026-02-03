@@ -37,19 +37,7 @@ public class FlashSaleService {
         this.orderService = orderService;
     }
     
-    // -------------------
-    // Flash Sale Purchase Operations
-    // -------------------
-    
-    /**
-     * Buy products during a flash sale.
-     * Checks stock via productService, creates order items, and saves the order.
-     * Throws exception if any product is out of stock.
-     * 
-     * @param user the user making the purchase
-     * @param productOrders list of product orders with productId and quantity
-     * @throws ResponseStatusException if any product is out of stock
-     */
+
     public void buyProducts(@NonNull User user, @NonNull List<BuyRequest.ProductOrder> productOrders) {
         List<OrderItem> items = new ArrayList<>();
         
@@ -85,29 +73,28 @@ public class FlashSaleService {
             : "Flash sale created, but " + skipped.size() + " product(s) were skipped (not found)";
         
         return Map.of(
-            "flashSale", created,
+            "flashSale", toDTO(created),
             "skippedProductIds", skipped,
             "message", message
         );
     }
     
     @NonNull
-    public List<FlashSaleEvent> findAll() {
-        return flashSaleRepository.findAll();
+    public List<FlashSaleResponseDTO> findAll() {
+        return flashSaleRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
     
     @NonNull
-    public FlashSaleEvent findById(@NonNull Long id) {
-        return flashSaleRepository.findById(id)
+    public FlashSaleResponseDTO findById(@NonNull Long id) {
+        FlashSaleEvent event = flashSaleRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Flash sale event not found with id: " + id
                 ));
+        return toDTO(event);
     }
     
-    /**
-     * Update flash sale with product validation.
-     * Returns flash sale, skipped product IDs, and message.
-     */
     @NonNull
     public Map<String, Object> update(@NonNull FlashSaleEvent flashSale) {
         if (flashSale.getId() == null) {
@@ -126,16 +113,13 @@ public class FlashSaleService {
             : "Flash sale updated, but " + skipped.size() + " product(s) were skipped (not found)";
         
         return Map.of(
-            "flashSale", updated,
+            "flashSale", toDTO(updated),
             "skippedProductIds", skipped,
             "message", message
         );
     }
     
-    /**
-     * Validates products and removes non-existent ones.
-     * Returns list of skipped product IDs.
-     */
+
     private List<Long> validateAndFilterProducts(FlashSaleEvent flashSale) {
         if (flashSale.getProducts() == null || flashSale.getProducts().isEmpty()) {
             return List.of();
@@ -178,46 +162,44 @@ public class FlashSaleService {
      * Get all active flash sales (currently running).
      */
     @NonNull
-    public List<FlashSaleEvent> getActiveFlashSales() {
+    public List<FlashSaleResponseDTO> getActiveFlashSales() {
         return flashSaleRepository.findAll().stream()
                 .filter(this::isActive)
+                .map(this::toDTO)
                 .toList();
     }
     
-    /**
-     * Get an active flash sale by ID.
-     */
+
     @NonNull
-    public Optional<FlashSaleEvent> getActiveFlashSale(@NonNull Long id) {
+    public Optional<FlashSaleResponseDTO> getActiveFlashSale(@NonNull Long id) {
         return flashSaleRepository.findById(id)
-                .filter(this::isActive);
+                .filter(this::isActive)
+                .map(this::toDTO);
     }
     
-    /**
-     * Check if a product is in any active flash sale.
-     */
     public boolean isProductInActiveFlashSale(@NonNull Long productId) {
-        return getActiveFlashSales().stream()
+        return flashSaleRepository.findAll().stream()
+                .filter(this::isActive)
                 .anyMatch(sale -> sale.getProducts().stream()
                         .anyMatch(p -> p.getId().equals(productId)));
     }
     
-    /**
-     * Get the flash sale event for a specific product (if in active flash sale).
-     */
     @NonNull
-    public Optional<FlashSaleEvent> getFlashSaleForProduct(@NonNull Long productId) {
-        return getActiveFlashSales().stream()
+    public Optional<FlashSaleResponseDTO> getFlashSaleForProduct(@NonNull Long productId) {
+        return flashSaleRepository.findAll().stream()
+                .filter(this::isActive)
                 .filter(sale -> sale.getProducts().stream()
                         .anyMatch(p -> p.getId().equals(productId)))
-                .findFirst();
+                .findFirst()
+                .map(this::toDTO);
     }
     
     /**
      * Check if there are any active flash sales.
      */
     public boolean hasActiveFlashSale() {
-        return !getActiveFlashSales().isEmpty();
+        return flashSaleRepository.findAll().stream()
+                .anyMatch(this::isActive);
     }
     
     /**
@@ -226,6 +208,35 @@ public class FlashSaleService {
     public boolean isActive(@NonNull FlashSaleEvent event) {
         LocalDateTime now = LocalDateTime.now();
         return event.getStartDate().isBefore(now) && event.getEndDate().isAfter(now);
+    }
+    
+    // -------------------
+    // DTO Conversion
+    // -------------------
+    
+    private FlashSaleResponseDTO toDTO(FlashSaleEvent event) {
+        List<ProductBasicDTO> productDTOs = event.getProducts().stream()
+                .map(this::toProductDTO)
+                .collect(Collectors.toList());
+        
+        return new FlashSaleResponseDTO(
+                event.getId(),
+                event.getName(),
+                event.getStartDate(),
+                event.getEndDate(),
+                productDTOs
+        );
+    }
+    
+    private ProductBasicDTO toProductDTO(Product product) {
+        return new ProductBasicDTO(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getDiscount(),
+                product.getImageLink()
+        );
     }
 }
 

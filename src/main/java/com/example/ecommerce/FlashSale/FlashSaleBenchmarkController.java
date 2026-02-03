@@ -13,13 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Controller for benchmarking cached vs non-cached flash sale operations.
- * 
- * Routes:
- * - /api/benchmark/db/flashsales/*      - Direct database access (no cache)
- * - /api/benchmark/cached/flashsales/*  - Redis cached access
- */
+
 @RestController
 @RequestMapping("/api/benchmark")
 public class FlashSaleBenchmarkController {
@@ -45,12 +39,12 @@ public class FlashSaleBenchmarkController {
     // ===========================================
     
     @GetMapping("/db/flashsales")
-    public List<FlashSaleEvent> dbFindAll() {
+    public List<FlashSaleResponseDTO> dbFindAll() {
         return dbFlashSaleService.findAll();
     }
     
     @GetMapping("/db/flashsales/{id}")
-    public FlashSaleEvent dbFindById(@PathVariable Long id) {
+    public FlashSaleResponseDTO dbFindById(@PathVariable Long id) {
         return dbFlashSaleService.findById(id);
     }
     
@@ -87,12 +81,12 @@ public class FlashSaleBenchmarkController {
     // ===========================================
     
     @GetMapping("/cached/flashsales")
-    public List<FlashSaleEvent> cachedFindAll() {
+    public List<FlashSaleResponseDTO> cachedFindAll() {
         return cachedFlashSaleService.findAll();
     }
     
     @GetMapping("/cached/flashsales/{id}")
-    public FlashSaleEvent cachedFindById(@PathVariable Long id) {
+    public FlashSaleResponseDTO cachedFindById(@PathVariable Long id) {
         return cachedFlashSaleService.findById(id);
     }
     
@@ -129,12 +123,12 @@ public class FlashSaleBenchmarkController {
     // ===========================================
     
     @GetMapping("/db/flashsales/active")
-    public List<FlashSaleEvent> dbGetActiveFlashSales() {
+    public List<FlashSaleResponseDTO> dbGetActiveFlashSales() {
         return dbFlashSaleService.getActiveFlashSales();
     }
     
     @GetMapping("/db/flashsales/active/{id}")
-    public ResponseEntity<FlashSaleEvent> dbGetActiveFlashSaleById(@PathVariable Long id) {
+    public ResponseEntity<FlashSaleResponseDTO> dbGetActiveFlashSaleById(@PathVariable Long id) {
         return dbFlashSaleService.getActiveFlashSale(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -153,7 +147,7 @@ public class FlashSaleBenchmarkController {
     }
     
     @GetMapping("/db/flashsales/product/{productId}")
-    public ResponseEntity<FlashSaleEvent> dbGetFlashSaleForProduct(@PathVariable Long productId) {
+    public ResponseEntity<FlashSaleResponseDTO> dbGetFlashSaleForProduct(@PathVariable Long productId) {
         return dbFlashSaleService.getFlashSaleForProduct(productId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -164,12 +158,12 @@ public class FlashSaleBenchmarkController {
     // ===========================================
     
     @GetMapping("/cached/flashsales/active")
-    public List<FlashSaleEvent> cachedGetActiveFlashSales() {
+    public List<FlashSaleResponseDTO> cachedGetActiveFlashSales() {
         return cachedFlashSaleService.getActiveFlashSales();
     }
     
     @GetMapping("/cached/flashsales/active/{id}")
-    public ResponseEntity<FlashSaleEvent> cachedGetActiveFlashSaleById(@PathVariable Long id) {
+    public ResponseEntity<FlashSaleResponseDTO> cachedGetActiveFlashSaleById(@PathVariable Long id) {
         return cachedFlashSaleService.getActiveFlashSale(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -188,7 +182,7 @@ public class FlashSaleBenchmarkController {
     }
     
     @GetMapping("/cached/flashsales/product/{productId}")
-    public ResponseEntity<FlashSaleEvent> cachedGetFlashSaleForProduct(@PathVariable Long productId) {
+    public ResponseEntity<FlashSaleResponseDTO> cachedGetFlashSaleForProduct(@PathVariable Long productId) {
         return cachedFlashSaleService.getFlashSaleForProduct(productId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

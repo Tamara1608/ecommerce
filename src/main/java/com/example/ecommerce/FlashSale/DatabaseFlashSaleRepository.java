@@ -10,11 +10,7 @@ import com.example.ecommerce.FlashSale.entity.FlashSaleEvent;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repository implementation for FlashSaleEvent CRUD operations.
- * Uses FlashSaleTable (JPA repository) to perform database operations.
- * Direct database access without caching.
- */
+
 @Repository
 @Qualifier("dbFlashSaleRepository")
 @RequiredArgsConstructor
