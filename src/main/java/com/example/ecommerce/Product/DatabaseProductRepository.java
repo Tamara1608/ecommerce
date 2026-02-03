@@ -20,87 +20,66 @@ import java.util.Optional;
 @Qualifier("dbProductRepository")
 @RequiredArgsConstructor
 public class DatabaseProductRepository implements IProductRepository {
-    
+
     private final ProductTable productTable;
-    
-    // -------------------
-    // CREATE operations
-    // -------------------
-    
+
     @Override
     @NonNull
     public Product create(@NonNull Product product) {
         return productTable.save(product);
     }
-    
-    // -------------------
-    // READ operations
-    // -------------------
-    
+
     @Override
     @NonNull
     public List<Product> findAll() {
         return productTable.findAllWithStock();
     }
-    
+
     @Override
     @NonNull
     public Optional<Product> findById(@NonNull Long id) {
         return productTable.findById(id);
     }
-    
-    // -------------------
-    // UPDATE operations
-    // -------------------
-    
+
     @Override
     @NonNull
     public Product update(@NonNull Product product) {
         return productTable.save(product);
     }
-    
-    // -------------------
-    // DELETE operations
-    // -------------------
-    
+
     @Override
     public void delete(@NonNull Long id) {
         productTable.deleteById(id);
     }
-    
-    // -------------------
-    // STOCK operations
-    // -------------------
-    
+
     @Override
     @Transactional
     @NonNull
     public Optional<Product> returnIfInStock(@NonNull Long productId, int quantity) {
         // Get product with stock from database
         Optional<Product> productOpt = productTable.findByIdWithStock(productId);
-        
+
         if (productOpt.isEmpty()) {
             return Optional.empty();
         }
-        
+
         Product product = productOpt.get();
         Stock stock = product.getStock();
-        
+
         if (stock == null) {
             return Optional.empty();
         }
-        
+
         // Check if sufficient stock exists (use currentValue from database)
         Integer currentStock = stock.getCurrentValue();
         if (currentStock == null || currentStock < quantity) {
             return Optional.empty();
         }
-        
+
         // Update stock quantity in database via Product (cascades to Stock)
         stock.setCurrentValue(currentStock - quantity);
         productTable.save(product);
-        
+
         return Optional.of(product);
     }
 }
-

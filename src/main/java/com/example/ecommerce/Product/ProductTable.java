@@ -17,7 +17,6 @@ public interface ProductTable extends JpaRepository<Product, Long> {
         FROM Product p
         LEFT JOIN FETCH p.stock
         LEFT JOIN FETCH p.categories
-        LEFT JOIN FETCH p.flashSales
         LEFT JOIN FETCH p.priceHistory
     """)
     List<Product> findAllWithStock();

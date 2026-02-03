@@ -14,13 +14,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-/**
- * Service for FlashSaleEvent CRUD operations and flash sale purchases.
- * Repository implementation is injected - can be cached or non-cached.
- */
+
 public class FlashSaleService {
     
     private final IFlashSaleRepository flashSaleRepository;
@@ -75,8 +76,19 @@ public class FlashSaleService {
     // -------------------
     
     @NonNull
-    public FlashSaleEvent create(@NonNull FlashSaleEvent flashSale) {
-        return flashSaleRepository.create(flashSale);
+    public Map<String, Object> create(@NonNull FlashSaleEvent flashSale) {
+        List<Long> skipped = validateAndFilterProducts(flashSale);
+        FlashSaleEvent created = flashSaleRepository.create(flashSale);
+        
+        String message = skipped.isEmpty() 
+            ? "Flash sale created successfully" 
+            : "Flash sale created, but " + skipped.size() + " product(s) were skipped (not found)";
+        
+        return Map.of(
+            "flashSale", created,
+            "skippedProductIds", skipped,
+            "message", message
+        );
     }
     
     @NonNull
@@ -92,8 +104,12 @@ public class FlashSaleService {
                 ));
     }
     
+    /**
+     * Update flash sale with product validation.
+     * Returns flash sale, skipped product IDs, and message.
+     */
     @NonNull
-    public FlashSaleEvent update(@NonNull FlashSaleEvent flashSale) {
+    public Map<String, Object> update(@NonNull FlashSaleEvent flashSale) {
         if (flashSale.getId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Flash sale ID is required for update");
         }
@@ -101,7 +117,49 @@ public class FlashSaleService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Flash sale event not found with id: " + flashSale.getId()
                 ));
-        return flashSaleRepository.update(flashSale);
+        
+        List<Long> skipped = validateAndFilterProducts(flashSale);
+        FlashSaleEvent updated = flashSaleRepository.update(flashSale);
+        
+        String message = skipped.isEmpty() 
+            ? "Flash sale updated successfully" 
+            : "Flash sale updated, but " + skipped.size() + " product(s) were skipped (not found)";
+        
+        return Map.of(
+            "flashSale", updated,
+            "skippedProductIds", skipped,
+            "message", message
+        );
+    }
+    
+    /**
+     * Validates products and removes non-existent ones.
+     * Returns list of skipped product IDs.
+     */
+    private List<Long> validateAndFilterProducts(FlashSaleEvent flashSale) {
+        if (flashSale.getProducts() == null || flashSale.getProducts().isEmpty()) {
+            return List.of();
+        }
+        
+        Set<Long> requestedIds = flashSale.getProducts().stream()
+                .map(Product::getId)
+                .collect(Collectors.toSet());
+        
+        Set<Product> validProducts = new HashSet<>();
+        List<Long> skippedIds = new ArrayList<>();
+        
+        for (Long productId : requestedIds) {
+            try {
+                Product product = productService.findById(productId);
+                validProducts.add(product);
+            } catch (ResponseStatusException e) {
+                // Product not found - skip it
+                skippedIds.add(productId);
+            }
+        }
+        
+        flashSale.setProducts(validProducts);
+        return skippedIds;
     }
     
     public void delete(@NonNull Long id) {

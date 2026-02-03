@@ -15,6 +15,12 @@ public interface IProductService {
     @NonNull
     Product create(@NonNull Product product);
     
+    /**
+     * Create a product with stock, price history, and categories.
+     */
+    @NonNull
+    Product createWithDetails(@NonNull ProductCreateRequest request);
+    
     @NonNull
     List<Product> findAll();
     

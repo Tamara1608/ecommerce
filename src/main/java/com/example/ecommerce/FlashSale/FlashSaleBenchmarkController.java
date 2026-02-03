@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller for benchmarking cached vs non-cached flash sale operations.
@@ -54,13 +55,13 @@ public class FlashSaleBenchmarkController {
     }
     
     @PostMapping("/db/flashsales")
-    public ResponseEntity<FlashSaleEvent> dbCreate(@RequestBody FlashSaleEvent flashSale) {
-        FlashSaleEvent created = dbFlashSaleService.create(flashSale);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<Map<String, Object>> dbCreate(@RequestBody FlashSaleEvent flashSale) {
+        Map<String, Object> result = dbFlashSaleService.create(flashSale);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
     
     @PutMapping("/db/flashsales/{id}")
-    public FlashSaleEvent dbUpdate(@PathVariable Long id, @RequestBody FlashSaleEvent flashSale) {
+    public Map<String, Object> dbUpdate(@PathVariable Long id, @RequestBody FlashSaleEvent flashSale) {
         flashSale.setId(id);
         return dbFlashSaleService.update(flashSale);
     }
@@ -96,13 +97,13 @@ public class FlashSaleBenchmarkController {
     }
     
     @PostMapping("/cached/flashsales")
-    public ResponseEntity<FlashSaleEvent> cachedCreate(@RequestBody FlashSaleEvent flashSale) {
-        FlashSaleEvent created = cachedFlashSaleService.create(flashSale);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<Map<String, Object>> cachedCreate(@RequestBody FlashSaleEvent flashSale) {
+        Map<String, Object> result = cachedFlashSaleService.create(flashSale);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
     
     @PutMapping("/cached/flashsales/{id}")
-    public FlashSaleEvent cachedUpdate(@PathVariable Long id, @RequestBody FlashSaleEvent flashSale) {
+    public Map<String, Object> cachedUpdate(@PathVariable Long id, @RequestBody FlashSaleEvent flashSale) {
         flashSale.setId(id);
         return cachedFlashSaleService.update(flashSale);
     }

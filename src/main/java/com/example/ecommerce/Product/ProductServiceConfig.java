@@ -14,15 +14,17 @@ public class ProductServiceConfig {
     @Bean
     @Qualifier("dbProductService")
     public ProductService dbProductService(
-            @Qualifier("dbProductRepository") IProductRepository repository) {
-        return new ProductService(repository);
+            @Qualifier("dbProductRepository") IProductRepository repository,
+            CategoryTable categoryTable) {
+        return new ProductService(repository, categoryTable);
     }
     
     @Bean
     @Qualifier("cachedProductService")
     public ProductService cachedProductService(
-            @Qualifier("cachedProductRepository") IProductRepository repository) {
-        return new ProductService(repository);
+            @Qualifier("cachedProductRepository") IProductRepository repository,
+            CategoryTable categoryTable) {
+        return new ProductService(repository, categoryTable);
     }
 }
 

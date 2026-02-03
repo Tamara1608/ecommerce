@@ -172,7 +172,7 @@ public class CachedCouponRepository implements ICouponRepository {
         String cacheKey = CACHE_KEY_PREFIX + coupon.getId();
         Duration ttl = calculateTtl(coupon);
         
-        if (ttl.isPositive()) {
+        if (!ttl.isNegative() && !ttl.isZero()) {
             redisTemplate.opsForValue().set(cacheKey, coupon, ttl);
         } else {
             redisTemplate.opsForValue().set(cacheKey, coupon);
@@ -183,7 +183,7 @@ public class CachedCouponRepository implements ICouponRepository {
         String cacheKey = CODE_KEY_PREFIX + coupon.getCode();
         Duration ttl = calculateTtl(coupon);
         
-        if (ttl.isPositive()) {
+        if (!ttl.isNegative() && !ttl.isZero()) {
             redisTemplate.opsForValue().set(cacheKey, coupon.getId(), ttl);
         } else {
             redisTemplate.opsForValue().set(cacheKey, coupon.getId());

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.ecommerce.Product.entity.Product;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller for benchmarking cached vs non-cached product operations.
@@ -45,8 +46,8 @@ public class ProductBenchmarkController {
     }
     
     @PostMapping("/db/products")
-    public ResponseEntity<Product> dbCreate(@RequestBody Product product) {
-        Product created = dbProductService.create(product);
+    public ResponseEntity<Product> dbCreate(@RequestBody ProductCreateRequest request) {
+        Product created = dbProductService.createWithDetails(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
     
@@ -57,9 +58,12 @@ public class ProductBenchmarkController {
     }
     
     @DeleteMapping("/db/products/{id}")
-    public ResponseEntity<Void> dbDelete(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> dbDelete(@PathVariable Long id) {
         dbProductService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of(
+            "message", "Product deleted successfully",
+            "id", id
+        ));
     }
     
     // ===========================================
@@ -77,8 +81,8 @@ public class ProductBenchmarkController {
     }
     
     @PostMapping("/cached/products")
-    public ResponseEntity<Product> cachedCreate(@RequestBody Product product) {
-        Product created = cachedProductService.create(product);
+    public ResponseEntity<Product> cachedCreate(@RequestBody ProductCreateRequest request) {
+        Product created = cachedProductService.createWithDetails(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
     
@@ -89,9 +93,12 @@ public class ProductBenchmarkController {
     }
     
     @DeleteMapping("/cached/products/{id}")
-    public ResponseEntity<Void> cachedDelete(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> cachedDelete(@PathVariable Long id) {
         cachedProductService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of(
+            "message", "Product deleted successfully",
+            "id", id
+        ));
     }
 }
 

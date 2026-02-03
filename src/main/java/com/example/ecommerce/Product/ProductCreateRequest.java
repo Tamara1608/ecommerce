@@ -4,22 +4,26 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 /**
- * DTO for retrieving product data with stock information.
- * Used for displaying products to users.
- * 
- * For order creation, use ProductDTO instead (without stock fields).
+ * DTO for creating a new product.
+ * Includes stock quantity and category IDs.
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductResponseDTO {
-    private Long id;
+public class ProductCreateRequest {
     private String name;
     private String description;
     private Double price;
     private Integer discount;
     private String imageLink;
-    private Integer currentStock;  // Current stock from Redis cache
+    
+    // Stock quantity to initialize
+    private Integer stockQuantity;
+    
+    // Category IDs to associate with the product
+    private Set<Long> categoryIds;
 }
 

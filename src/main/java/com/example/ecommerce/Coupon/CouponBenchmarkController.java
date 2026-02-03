@@ -9,13 +9,7 @@ import com.example.ecommerce.Order.entity.Coupon;
 
 import java.util.List;
 
-/**
- * Controller for benchmarking cached vs non-cached coupon operations.
- * 
- * Routes:
- * - /api/benchmark/db/coupons/*      - Direct database access (no cache)
- * - /api/benchmark/cached/coupons/*  - Redis cached access
- */
+
 @RestController
 @RequestMapping("/api/benchmark")
 public class CouponBenchmarkController {

@@ -11,8 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.example.ecommerce.FlashSale.entity.FlashSaleEvent;
-
 @Entity
 @Table(name = "products")
 @Data
@@ -40,9 +38,6 @@ public class Product implements Serializable {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "stock_id")
     private Stock stock;
-
-    @ManyToMany(mappedBy = "products")
-    private Set<FlashSaleEvent> flashSales = new HashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ProductPriceHistory> priceHistory = new ArrayList<>();

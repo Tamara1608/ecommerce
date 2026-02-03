@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import com.example.ecommerce.Product.entity.Product;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -155,11 +154,6 @@ public class CachedProductRepository implements IProductRepository {
         redisTemplate.delete(cacheKey);
     }
     
-    private void cacheAllProducts(List<Product> products) {
-        redisTemplate.opsForValue().set(ALL_PRODUCTS_KEY, products);
-        // Also cache individual products
-        products.forEach(this::cacheProduct);
-    }
     
     private void invalidateAllProductsCache() {
         redisTemplate.delete(ALL_PRODUCTS_KEY);
