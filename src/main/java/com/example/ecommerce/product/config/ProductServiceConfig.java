@@ -4,14 +4,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.example.ecommerce.category.infrastructure.persistence.category.CategoryTable;
 import com.example.ecommerce.product.app.ProductService;
-import com.example.ecommerce.product.infrastructure.persistence.category.CategoryTable;
 import com.example.ecommerce.product.infrastructure.persistence.product.IProductRepository;
 
-/**
- * Configuration for ProductService beans.
- * Creates two service instances - one with caching, one without.
- */
+
 @Configuration
 public class ProductServiceConfig {
     

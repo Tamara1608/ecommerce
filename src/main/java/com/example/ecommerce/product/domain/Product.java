@@ -1,5 +1,6 @@
 package com.example.ecommerce.product.domain;
 
+import com.example.ecommerce.category.domain.Category;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,5 +1,6 @@
-package com.example.ecommerce.product.domain;
+package com.example.ecommerce.category.domain;
 
+import com.example.ecommerce.product.domain.Product;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table
+@Table(name = "category")
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,3 +28,4 @@ public class Category {
     private Set<Product> products = new HashSet<>();
 
 }
+

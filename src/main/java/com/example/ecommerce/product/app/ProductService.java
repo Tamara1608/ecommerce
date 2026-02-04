@@ -4,12 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.example.ecommerce.category.domain.Category;
+import com.example.ecommerce.category.infrastructure.persistence.category.CategoryTable;
 import com.example.ecommerce.product.api.dto.ProductCreateRequest;
-import com.example.ecommerce.product.domain.Category;
 import com.example.ecommerce.product.domain.Product;
 import com.example.ecommerce.product.domain.ProductPriceHistory;
 import com.example.ecommerce.product.domain.Stock;
-import com.example.ecommerce.product.infrastructure.persistence.category.CategoryTable;
 import com.example.ecommerce.product.infrastructure.persistence.product.IProductRepository;
 
 import java.time.LocalDateTime;

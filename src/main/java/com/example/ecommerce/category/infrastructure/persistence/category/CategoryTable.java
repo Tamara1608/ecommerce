@@ -1,6 +1,6 @@
-package com.example.ecommerce.product.infrastructure.persistence.category;
+package com.example.ecommerce.category.infrastructure.persistence.category;
 
-import com.example.ecommerce.product.domain.Category;
+import com.example.ecommerce.category.domain.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
