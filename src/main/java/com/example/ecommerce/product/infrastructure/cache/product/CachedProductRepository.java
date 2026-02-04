@@ -3,6 +3,7 @@ package com.example.ecommerce.product.infrastructure.cache.product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
@@ -10,17 +11,11 @@ import com.example.ecommerce.product.domain.Product;
 import com.example.ecommerce.product.infrastructure.persistence.product.IProductRepository;
 import com.example.ecommerce.product.infrastructure.persistence.product.ProductTable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 
-/**
- * Cached implementation of IProductRepository.
- * Implements both Write-Through and Read-Through caching strategies.
- * 
- * Write-Through: On create/update, data is written to DB first, then cached simultaneously.
- * Read-Through: On read, cache is checked first. On miss, data is fetched from DB and cached.
- */
 @Repository
 @Qualifier("cachedProductRepository")
 @RequiredArgsConstructor
@@ -33,12 +28,17 @@ public class CachedProductRepository implements IProductRepository {
     private static final String ALL_PRODUCTS_KEY = "products:all";
     private static final String STOCK_KEY_PREFIX = "stock:";
     
-    /**
-     * Write-Through: Create product in DB, then cache it simultaneously.
-     * Step 1: Write to database
-     * Step 2: Write to cache
-     * Step 3: Invalidate list cache for consistency
-     */
+    private static final String ATOMIC_DECREMENT_SCRIPT = 
+        "local stock = tonumber(redis.call('GET', KEYS[1]) or '0') " +
+        "local quantity = tonumber(ARGV[1]) " +
+        "if stock >= quantity then " +
+        "    redis.call('DECRBY', KEYS[1], quantity) " +
+        "    return 1 " +
+        "else " +
+        "    return 0 " +
+        "end";
+    
+
     @Override
     @NonNull
     public Product create(@NonNull Product product) {
@@ -136,9 +136,10 @@ public class CachedProductRepository implements IProductRepository {
     public Optional<Product> returnIfInStock(@NonNull Long productId, int quantity) {
         String stockKey = STOCK_KEY_PREFIX + productId;
         
-        Long stock = redisTemplate.opsForValue().decrement(stockKey, quantity);
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(ATOMIC_DECREMENT_SCRIPT, Long.class);
+        Long result = redisTemplate.execute(script, Collections.singletonList(stockKey), quantity);
         
-        if (stock != null && stock >= 0) {
+        if (result != null && result == 1) {
             String cacheKey = CACHE_KEY_PREFIX + productId;
             Object cached = redisTemplate.opsForValue().get(cacheKey);
             
@@ -150,10 +151,9 @@ public class CachedProductRepository implements IProductRepository {
             productOpt.ifPresent(this::cacheProduct);
             
             return productOpt;
-        } else {
-            redisTemplate.opsForValue().increment(stockKey, quantity);
-            return Optional.empty();
         }
+        
+        return Optional.empty();
     }
         
     private void cacheProduct(Product product) {

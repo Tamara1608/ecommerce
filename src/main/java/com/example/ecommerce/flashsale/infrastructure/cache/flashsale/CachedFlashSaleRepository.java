@@ -10,6 +10,8 @@ import com.example.ecommerce.flashsale.domain.FlashSaleEvent;
 import com.example.ecommerce.flashsale.infrastructure.persistence.flashsale.IFlashSaleRepository;
 import com.example.ecommerce.flashsale.infrastructure.persistence.flashsale.FlashSaleTable;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -78,7 +80,20 @@ public class CachedFlashSaleRepository implements IFlashSaleRepository {
     
     private void cacheFlashSale(FlashSaleEvent flashSale) {
         String cacheKey = CACHE_KEY_PREFIX + flashSale.getId();
-        redisTemplate.opsForValue().set(cacheKey, flashSale);
+        Duration ttl = calculateTtl(flashSale);
+        
+        if (!ttl.isNegative() && !ttl.isZero()) {
+            redisTemplate.opsForValue().set(cacheKey, flashSale, ttl);
+        } else {
+            redisTemplate.opsForValue().set(cacheKey, flashSale);
+        }
+    }
+    
+    private Duration calculateTtl(FlashSaleEvent flashSale) {
+        if (flashSale.getEndDate() == null) {
+            return Duration.ZERO;
+        }
+        return Duration.between(LocalDateTime.now(), flashSale.getEndDate());
     }
     
     private void evictFromCache(Long id) {
