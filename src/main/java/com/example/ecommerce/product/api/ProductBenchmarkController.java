@@ -12,13 +12,7 @@ import com.example.ecommerce.product.domain.Product;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Controller for benchmarking cached vs non-cached product operations.
- * 
- * Routes:
- * - /api/benchmark/db/*      - Direct database access (no cache)
- * - /api/benchmark/cached/*  - Redis cached access
- */
+
 @RestController
 @RequestMapping("/api/benchmark")
 public class ProductBenchmarkController {

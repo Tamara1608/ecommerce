@@ -1,0 +1,1386 @@
+{
+	"info": {
+		"_postman_id": "ecommerce-api-collection",
+		"name": "E-Commerce API - Complete Collection",
+		"description": "Complete API collection for E-Commerce application with Database and Cached endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Category",
+			"item": [
+				{
+					"name": "Database (No Cache)",
+					"item": [
+						{
+							"name": "Create Category",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Electronics\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/categories",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "categories"]
+								}
+							}
+						},
+						{
+							"name": "Get All Categories",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/categories",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "categories"]
+								}
+							}
+						},
+						{
+							"name": "Get Category by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/categories/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "categories", "1"]
+								}
+							}
+						},
+						{
+							"name": "Update Category",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated Electronics\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/categories/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "categories", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Category",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/categories/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "categories", "1"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Cached (Redis)",
+					"item": [
+						{
+							"name": "Create Category",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Electronics\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/categories",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "categories"]
+								}
+							}
+						},
+						{
+							"name": "Get All Categories",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/categories",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "categories"]
+								}
+							}
+						},
+						{
+							"name": "Get Category by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/categories/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "categories", "1"]
+								}
+							}
+						},
+						{
+							"name": "Update Category",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated Electronics\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/categories/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "categories", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Category",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/categories/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "categories", "1"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Product",
+			"item": [
+				{
+					"name": "Database (No Cache)",
+					"item": [
+						{
+							"name": "Create Product",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Laptop\",\n  \"description\": \"High performance laptop\",\n  \"price\": 999.99,\n  \"discount\": 10,\n  \"imageLink\": \"https://example.com/laptop.jpg\",\n  \"stockQuantity\": 50,\n  \"categoryIds\": [1, 2]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/products",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "products"]
+								}
+							}
+						},
+						{
+							"name": "Get All Products",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/products",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "products"]
+								}
+							}
+						},
+						{
+							"name": "Get Product by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/products/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "products", "1"]
+								}
+							}
+						},
+						{
+							"name": "Update Product",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated Laptop\",\n  \"description\": \"Updated description\",\n  \"price\": 899.99,\n  \"discount\": 15\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/products/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "products", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Product",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/products/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "products", "1"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Cached (Redis)",
+					"item": [
+						{
+							"name": "Create Product",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Laptop\",\n  \"description\": \"High performance laptop\",\n  \"price\": 999.99,\n  \"discount\": 10,\n  \"imageLink\": \"https://example.com/laptop.jpg\",\n  \"stockQuantity\": 50,\n  \"categoryIds\": [1, 2]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/products",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "products"]
+								}
+							}
+						},
+						{
+							"name": "Get All Products",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/products",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "products"]
+								}
+							}
+						},
+						{
+							"name": "Get Product by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/products/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "products", "1"]
+								}
+							}
+						},
+						{
+							"name": "Update Product",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated Laptop\",\n  \"description\": \"Updated description\",\n  \"price\": 899.99,\n  \"discount\": 15\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/products/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "products", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Product",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/products/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "products", "1"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Database (No Cache)",
+					"item": [
+						{
+							"name": "Auth",
+							"item": [
+								{
+									"name": "Signup",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"username\": \"john_doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/auth/signup",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "auth", "signup"]
+										}
+									}
+								},
+								{
+									"name": "Login",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/auth/login",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "auth", "login"]
+										}
+									}
+								},
+								{
+									"name": "Logout",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/auth/logout",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "auth", "logout"]
+										}
+									}
+								},
+								{
+									"name": "Get Current User",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/auth/me",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "auth", "me"]
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Create User",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/users?username=john_doe&email=john@example.com&password=pass123",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "users"],
+									"query": [
+										{
+											"key": "username",
+											"value": "john_doe"
+										},
+										{
+											"key": "email",
+											"value": "john@example.com"
+										},
+										{
+											"key": "password",
+											"value": "pass123"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Get All Users",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "users"]
+								}
+							}
+						},
+						{
+							"name": "Get User by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/users/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "users", "1"]
+								}
+							}
+						},
+						{
+							"name": "Update User",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"updated_username\",\n  \"email\": \"updated@example.com\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/users/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "users", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete User",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/users/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "users", "1"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Cached (Redis)",
+					"item": [
+						{
+							"name": "Auth",
+							"item": [
+								{
+									"name": "Signup",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"username\": \"john_doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/auth/signup",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "auth", "signup"]
+										}
+									}
+								},
+								{
+									"name": "Login",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/auth/login",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "auth", "login"]
+										}
+									}
+								},
+								{
+									"name": "Logout",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/auth/logout",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "auth", "logout"]
+										}
+									}
+								},
+								{
+									"name": "Get Current User",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/auth/me",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "auth", "me"]
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Create User",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/users?username=john_doe&email=john@example.com&password=pass123",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "users"],
+									"query": [
+										{
+											"key": "username",
+											"value": "john_doe"
+										},
+										{
+											"key": "email",
+											"value": "john@example.com"
+										},
+										{
+											"key": "password",
+											"value": "pass123"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Get All Users",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "users"]
+								}
+							}
+						},
+						{
+							"name": "Get User by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/users/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "users", "1"]
+								}
+							}
+						},
+						{
+							"name": "Update User",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"updated_username\",\n  \"email\": \"updated@example.com\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/users/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "users", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete User",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/users/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "users", "1"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Order",
+			"item": [
+				{
+					"name": "Database (No Cache)",
+					"item": [
+						{
+							"name": "Get All Orders",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/orders",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "orders"]
+								}
+							}
+						},
+						{
+							"name": "Get Order by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/orders/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "orders", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get Orders by User ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/orders/user/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "orders", "user", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Orders (Raw)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/orders/raw",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "orders", "raw"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Cached (Redis)",
+					"item": [
+						{
+							"name": "Get All Orders",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/orders",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "orders"]
+								}
+							}
+						},
+						{
+							"name": "Get Order by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/orders/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "orders", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get Orders by User ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/orders/user/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "orders", "user", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Orders (Raw)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/orders/raw",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "orders", "raw"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "FlashSale",
+			"item": [
+				{
+					"name": "Database (No Cache)",
+					"item": [
+						{
+							"name": "CRUD",
+							"item": [
+								{
+									"name": "Create Flash Sale",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Summer Sale\",\n  \"startTime\": \"2026-06-01T00:00:00\",\n  \"endTime\": \"2026-06-30T23:59:59\",\n  \"discount\": 20\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/flashsales",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "flashsales"]
+										}
+									}
+								},
+								{
+									"name": "Get All Flash Sales",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/flashsales",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "flashsales"]
+										}
+									}
+								},
+								{
+									"name": "Get Flash Sale by ID",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/flashsales/1",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "flashsales", "1"]
+										}
+									}
+								},
+								{
+									"name": "Update Flash Sale",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Updated Summer Sale\",\n  \"discount\": 25\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/flashsales/1",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "flashsales", "1"]
+										}
+									}
+								},
+								{
+									"name": "Delete Flash Sale",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/flashsales/1",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "flashsales", "1"]
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Active Flash Sales",
+							"item": [
+								{
+									"name": "Get Active Flash Sales",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/flashsales/active",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "flashsales", "active"]
+										}
+									}
+								},
+								{
+									"name": "Get Active Flash Sale by ID",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/flashsales/active/1",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "flashsales", "active", "1"]
+										}
+									}
+								},
+								{
+									"name": "Check Has Active Flash Sale",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/flashsales/check/active",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "flashsales", "check", "active"]
+										}
+									}
+								},
+								{
+									"name": "Check Product in Flash Sale",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/flashsales/product/1/check",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "flashsales", "product", "1", "check"]
+										}
+									}
+								},
+								{
+									"name": "Get Flash Sale for Product",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/db/flashsales/product/1",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "db", "flashsales", "product", "1"]
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Buy Products",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"userId\": 1,\n  \"products\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 2\n    },\n    {\n      \"productId\": 2,\n      \"quantity\": 1\n    }\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/flashsales/buy",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "flashsales", "buy"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Cached (Redis)",
+					"item": [
+						{
+							"name": "CRUD",
+							"item": [
+								{
+									"name": "Create Flash Sale",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Summer Sale\",\n  \"startTime\": \"2026-06-01T00:00:00\",\n  \"endTime\": \"2026-06-30T23:59:59\",\n  \"discount\": 20\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/flashsales",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "flashsales"]
+										}
+									}
+								},
+								{
+									"name": "Get All Flash Sales",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/flashsales",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "flashsales"]
+										}
+									}
+								},
+								{
+									"name": "Get Flash Sale by ID",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/1",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "flashsales", "1"]
+										}
+									}
+								},
+								{
+									"name": "Update Flash Sale",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Updated Summer Sale\",\n  \"discount\": 25\n}"
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/1",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "flashsales", "1"]
+										}
+									}
+								},
+								{
+									"name": "Delete Flash Sale",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/1",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "flashsales", "1"]
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Active Flash Sales",
+							"item": [
+								{
+									"name": "Get Active Flash Sales",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/active",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "flashsales", "active"]
+										}
+									}
+								},
+								{
+									"name": "Get Active Flash Sale by ID",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/active/1",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "flashsales", "active", "1"]
+										}
+									}
+								},
+								{
+									"name": "Check Has Active Flash Sale",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/check/active",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "flashsales", "check", "active"]
+										}
+									}
+								},
+								{
+									"name": "Check Product in Flash Sale",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/product/1/check",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "flashsales", "product", "1", "check"]
+										}
+									}
+								},
+								{
+									"name": "Get Flash Sale for Product",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/product/1",
+											"host": ["{{baseUrl}}"],
+											"path": ["api", "benchmark", "cached", "flashsales", "product", "1"]
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Buy Products",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"userId\": 1,\n  \"products\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 2\n    },\n    {\n      \"productId\": 2,\n      \"quantity\": 1\n    }\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/flashsales/buy",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "flashsales", "buy"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Coupon",
+			"item": [
+				{
+					"name": "Database (No Cache)",
+					"item": [
+						{
+							"name": "Create Coupon",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"code\": \"SUMMER2026\",\n  \"discountPercentage\": 15,\n  \"maxUses\": 100,\n  \"currentUses\": 0,\n  \"expirationDate\": \"2026-08-31T23:59:59\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/coupons",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "coupons"]
+								}
+							}
+						},
+						{
+							"name": "Get All Coupons",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/coupons",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "coupons"]
+								}
+							}
+						},
+						{
+							"name": "Get Coupon by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/coupons/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "coupons", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get Coupon by Code",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/coupons/code/SUMMER2026",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "coupons", "code", "SUMMER2026"]
+								}
+							}
+						},
+						{
+							"name": "Update Coupon",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"code\": \"SUMMER2026\",\n  \"discountPercentage\": 20,\n  \"maxUses\": 150\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/coupons/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "coupons", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Coupon",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/coupons/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "coupons", "1"]
+								}
+							}
+						},
+						{
+							"name": "Apply Coupon",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/db/coupons/apply?code=SUMMER2026&userId=1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "db", "coupons", "apply"],
+									"query": [
+										{
+											"key": "code",
+											"value": "SUMMER2026"
+										},
+										{
+											"key": "userId",
+											"value": "1"
+										}
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Cached (Redis)",
+					"item": [
+						{
+							"name": "Create Coupon",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"code\": \"SUMMER2026\",\n  \"discountPercentage\": 15,\n  \"maxUses\": 100,\n  \"currentUses\": 0,\n  \"expirationDate\": \"2026-08-31T23:59:59\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/coupons",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "coupons"]
+								}
+							}
+						},
+						{
+							"name": "Get All Coupons",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/coupons",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "coupons"]
+								}
+							}
+						},
+						{
+							"name": "Get Coupon by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/coupons/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "coupons", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get Coupon by Code",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/coupons/code/SUMMER2026",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "coupons", "code", "SUMMER2026"]
+								}
+							}
+						},
+						{
+							"name": "Update Coupon",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"code\": \"SUMMER2026\",\n  \"discountPercentage\": 20,\n  \"maxUses\": 150\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/coupons/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "coupons", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Coupon",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/coupons/1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "coupons", "1"]
+								}
+							}
+						},
+						{
+							"name": "Apply Coupon",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/benchmark/cached/coupons/apply?code=SUMMER2026&userId=1",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "benchmark", "cached", "coupons", "apply"],
+									"query": [
+										{
+											"key": "code",
+											"value": "SUMMER2026"
+										},
+										{
+											"key": "userId",
+											"value": "1"
+										}
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}
+

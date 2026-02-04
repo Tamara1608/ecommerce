@@ -14,6 +14,13 @@ import java.util.List;
 import java.util.Optional;
 
 
+/**
+ * Cached implementation of IProductRepository.
+ * Implements both Write-Through and Read-Through caching strategies.
+ * 
+ * Write-Through: On create/update, data is written to DB first, then cached simultaneously.
+ * Read-Through: On read, cache is checked first. On miss, data is fetched from DB and cached.
+ */
 @Repository
 @Qualifier("cachedProductRepository")
 @RequiredArgsConstructor
@@ -26,27 +33,56 @@ public class CachedProductRepository implements IProductRepository {
     private static final String ALL_PRODUCTS_KEY = "products:all";
     private static final String STOCK_KEY_PREFIX = "stock:";
     
+    /**
+     * Write-Through: Create product in DB, then cache it simultaneously.
+     * Step 1: Write to database
+     * Step 2: Write to cache
+     * Step 3: Invalidate list cache for consistency
+     */
     @Override
     @NonNull
     public Product create(@NonNull Product product) {
+        // Step 1: Write to database first
         Product saved = productTable.save(product);
+        
+        // Step 2: Write to cache (write-through)
         cacheProduct(saved);
+        
+        // Step 3: Invalidate all-products cache for consistency
         invalidateAllProductsCache();
+        
         return saved;
     }
     
+    /**
+     * Read-through caching for findAll:
+     * 1. Check cache first
+     * 2. If cache miss, fetch from DB
+     * 3. Populate cache with the result
+     * 4. Return data
+     */
     @Override
     @NonNull
     @SuppressWarnings("unchecked")
     public List<Product> findAll() {
+        // Step 1: Check cache
         List<Product> cached = (List<Product>) redisTemplate.opsForValue().get(ALL_PRODUCTS_KEY);
         
         if (cached != null) {
-            return cached;
+            return cached; // Cache hit - return cached data
         }
         
+        // Step 2: Cache miss - fetch from database
         List<Product> products = productTable.findAllWithStock();
         
+        // Step 3: Populate cache (read-through)
+        if (!products.isEmpty()) {
+            redisTemplate.opsForValue().set(ALL_PRODUCTS_KEY, products);
+            // Also cache individual products for consistency
+            products.forEach(this::cacheProduct);
+        }
+        
+        // Step 4: Return data
         return products;
     }
     
@@ -67,12 +103,24 @@ public class CachedProductRepository implements IProductRepository {
         return productOpt;
     }
     
+    /**
+     * Write-Through: Update product in DB, then update cache simultaneously.
+     * Step 1: Write to database
+     * Step 2: Update cache with new data
+     * Step 3: Invalidate list cache for consistency
+     */
     @Override
     @NonNull
     public Product update(@NonNull Product product) {
+        // Step 1: Write to database first
         Product updated = productTable.save(product);
+        
+        // Step 2: Update cache (write-through)
         cacheProduct(updated);
+        
+        // Step 3: Invalidate all-products cache for consistency
         invalidateAllProductsCache();
+        
         return updated;
     }
     
