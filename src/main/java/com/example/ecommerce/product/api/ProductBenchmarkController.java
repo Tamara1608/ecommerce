@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.ecommerce.product.api.dto.ProductCreateRequest;
 import com.example.ecommerce.product.app.ProductService;
 import com.example.ecommerce.product.domain.Product;
+import com.example.ecommerce.product.infrastructure.sync.PopularProductRefreshJob;
 
 import java.util.List;
 import java.util.Map;
@@ -19,12 +20,15 @@ public class ProductBenchmarkController {
     
     private final ProductService dbProductService;
     private final ProductService cachedProductService;
+    private final PopularProductRefreshJob popularProductRefreshJob;
     
     public ProductBenchmarkController(
             @Qualifier("dbProductService") ProductService dbProductService,
-            @Qualifier("cachedProductService") ProductService cachedProductService) {
+            @Qualifier("cachedProductService") ProductService cachedProductService,
+            PopularProductRefreshJob popularProductRefreshJob) {
         this.dbProductService = dbProductService;
         this.cachedProductService = cachedProductService;
+        this.popularProductRefreshJob = popularProductRefreshJob;
     }
     
     // ===========================================
@@ -38,6 +42,7 @@ public class ProductBenchmarkController {
     
     @GetMapping("/db/products/{id}")
     public Product dbFindById(@PathVariable Long id) {
+        popularProductRefreshJob.trackProductView(id);
         return dbProductService.findById(id);
     }
     
@@ -73,6 +78,7 @@ public class ProductBenchmarkController {
     
     @GetMapping("/cached/products/{id}")
     public Product cachedFindById(@PathVariable Long id) {
+        popularProductRefreshJob.trackProductView(id);
         return cachedProductService.findById(id);
     }
     
