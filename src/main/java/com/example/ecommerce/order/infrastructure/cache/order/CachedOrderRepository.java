@@ -13,6 +13,12 @@ import com.example.ecommerce.order.infrastructure.persistence.order.OrderTable;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Write-Around implementation for Orders.
+ * 
+ * Create/Update: Writes to DB only, skips cache (write-around)
+ * Read: Lazy loads into cache on first access (cache-aside)
+ */
 @Repository
 @Qualifier("cachedOrderRepository")
 @RequiredArgsConstructor
@@ -29,11 +35,12 @@ public class CachedOrderRepository implements IOrderRepository {
     @NonNull
     public Order create(@NonNull Order order) {
         Order saved = orderTable.save(order);
-        cacheOrder(saved);
+        
         invalidateAllOrdersCache();
         if (saved.getUser() != null) {
             invalidateUserOrdersCache(saved.getUser().getId());
         }
+        
         return saved;
     }
     
@@ -96,11 +103,13 @@ public class CachedOrderRepository implements IOrderRepository {
     @NonNull
     public Order update(@NonNull Order order) {
         Order updated = orderTable.save(order);
-        cacheOrder(updated);
+        
+        evictFromCache(updated.getId());
         invalidateAllOrdersCache();
         if (updated.getUser() != null) {
             invalidateUserOrdersCache(updated.getUser().getId());
         }
+        
         return updated;
     }
     
