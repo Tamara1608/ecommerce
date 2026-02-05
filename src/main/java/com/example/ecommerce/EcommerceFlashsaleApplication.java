@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableCaching
-@EnableScheduling
+// @EnableScheduling
 public class EcommerceFlashsaleApplication {
     public static void main(String[] args) {
         SpringApplication.run(EcommerceFlashsaleApplication.class, args);

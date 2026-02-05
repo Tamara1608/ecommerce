@@ -1,12 +1,15 @@
 package com.example.ecommerce.product.infrastructure.cache.product;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.example.ecommerce.flashsale.infrastructure.persistence.flashsale.FlashSaleTable;
 import com.example.ecommerce.product.domain.Product;
 import com.example.ecommerce.product.infrastructure.persistence.product.IProductRepository;
 import com.example.ecommerce.product.infrastructure.persistence.product.ProductTable;
@@ -19,10 +22,12 @@ import java.util.Optional;
 @Repository
 @Qualifier("cachedProductRepository")
 @RequiredArgsConstructor
+@Slf4j
 public class CachedProductRepository implements IProductRepository {
     
     private final ProductTable productTable;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final FlashSaleTable flashSaleTable;
     
     private static final String CACHE_KEY_PREFIX = "product:";
     private static final String ALL_PRODUCTS_KEY = "products:all";
@@ -66,10 +71,16 @@ public class CachedProductRepository implements IProductRepository {
     @SuppressWarnings("unchecked")
     public List<Product> findAll() {
         // Step 1: Check cache
-        List<Product> cached = (List<Product>) redisTemplate.opsForValue().get(ALL_PRODUCTS_KEY);
-        
-        if (cached != null) {
-            return cached; // Cache hit - return cached data
+        try {
+            List<Product> cached = (List<Product>) redisTemplate.opsForValue().get(ALL_PRODUCTS_KEY);
+            
+            if (cached != null) {
+                return cached; // Cache hit - return cached data
+            }
+        } catch (Exception e) {
+            // Handle corrupted/stale cache data
+            log.warn("Failed to deserialize cached products list, invalidating cache: {}", e.getMessage());
+            invalidateAllProductsCache();
         }
         
         // Step 2: Cache miss - fetch from database
@@ -90,25 +101,27 @@ public class CachedProductRepository implements IProductRepository {
     @NonNull
     public Optional<Product> findById(@NonNull Long id) {
         String cacheKey = CACHE_KEY_PREFIX + id;
-        Object cached = redisTemplate.opsForValue().get(cacheKey);
         
-        if (cached != null) {
-            return Optional.of((Product) cached);
+        try {
+            Object cached = redisTemplate.opsForValue().get(cacheKey);
+            
+            if (cached != null) {
+                return Optional.of((Product) cached);
+            }
+        } catch (Exception e) {
+            // Handle corrupted/stale cache data (e.g., class path changes)
+            log.warn("Failed to deserialize cached product {}, evicting from cache: {}", id, e.getMessage());
+            evictFromCache(id);
         }
         
-        Optional<Product> productOpt = productTable.findById(id);
+        Optional<Product> productOpt = productTable.findByIdWithAllRelations(id);
         
         productOpt.ifPresent(this::cacheProduct);
         
         return productOpt;
     }
     
-    /**
-     * Write-Through: Update product in DB, then update cache simultaneously.
-     * Step 1: Write to database
-     * Step 2: Update cache with new data
-     * Step 3: Invalidate list cache for consistency
-     */
+
     @Override
     @NonNull
     public Product update(@NonNull Product product) {
@@ -125,7 +138,10 @@ public class CachedProductRepository implements IProductRepository {
     }
     
     @Override
+    @Transactional
     public void delete(@NonNull Long id) {
+        // Remove product from all flash sales first to avoid FK constraint violation
+        flashSaleTable.removeProductFromAllFlashSales(id);
         productTable.deleteById(id);
         evictFromCache(id);
         invalidateAllProductsCache();

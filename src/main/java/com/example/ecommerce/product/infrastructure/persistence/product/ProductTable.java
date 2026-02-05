@@ -30,5 +30,14 @@ public interface ProductTable extends JpaRepository<Product, Long> {
         WHERE p.id = :id
     """)
     Optional<Product> findByIdWithStock(@Param("id") Long id);
-   
+    
+    @Query("""
+        SELECT p
+        FROM Product p
+        LEFT JOIN FETCH p.stock
+        LEFT JOIN FETCH p.categories
+        LEFT JOIN FETCH p.priceHistory
+        WHERE p.id = :id
+    """)
+    Optional<Product> findByIdWithAllRelations(@Param("id") Long id);
 }

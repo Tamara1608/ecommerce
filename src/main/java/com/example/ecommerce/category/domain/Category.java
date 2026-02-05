@@ -2,6 +2,7 @@ package com.example.ecommerce.category.domain;
 
 import com.example.ecommerce.product.domain.Product;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +17,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Data
 @Table(name = "category")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "products"})
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

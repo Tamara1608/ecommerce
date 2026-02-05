@@ -1,5 +1,6 @@
 package com.example.ecommerce.product.infrastructure.persistence.product;
 
+import com.example.ecommerce.flashsale.infrastructure.persistence.flashsale.FlashSaleTable;
 import com.example.ecommerce.product.domain.Product;
 import com.example.ecommerce.product.domain.Stock;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.Optional;
 public class DatabaseProductRepository implements IProductRepository {
 
     private final ProductTable productTable;
+    private final FlashSaleTable flashSaleTable;
 
     @Override
     @NonNull
@@ -48,7 +50,10 @@ public class DatabaseProductRepository implements IProductRepository {
     }
 
     @Override
+    @Transactional
     public void delete(@NonNull Long id) {
+        // Remove product from all flash sales first to avoid FK constraint violation
+        flashSaleTable.removeProductFromAllFlashSales(id);
         productTable.deleteById(id);
     }
 
