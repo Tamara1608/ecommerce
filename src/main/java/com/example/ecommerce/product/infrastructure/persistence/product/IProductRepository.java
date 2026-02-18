@@ -2,6 +2,7 @@ package com.example.ecommerce.product.infrastructure.persistence.product;
 
 import org.springframework.lang.NonNull;
 
+import com.example.ecommerce.product.api.dto.ProductDTO;
 import com.example.ecommerce.product.domain.Product;
 
 import java.util.List;
@@ -16,9 +17,14 @@ public interface IProductRepository {
     @NonNull
     List<Product> findAll();
     
+    @NonNull
+    List<ProductDTO> findAllDTO();
     
     @NonNull
     Optional<Product> findById(@NonNull Long id);
+    
+    @NonNull
+    Optional<ProductDTO> findByIdDTO(@NonNull Long id);
     
     @NonNull
     Product update(@NonNull Product product);

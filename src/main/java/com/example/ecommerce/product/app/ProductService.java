@@ -7,6 +7,8 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.ecommerce.category.domain.Category;
 import com.example.ecommerce.category.infrastructure.persistence.category.CategoryTable;
 import com.example.ecommerce.product.api.dto.ProductCreateRequest;
+import com.example.ecommerce.product.api.dto.ProductDTO;
+import com.example.ecommerce.product.api.dto.ProductUpdateRequest;
 import com.example.ecommerce.product.domain.Product;
 import com.example.ecommerce.product.domain.ProductPriceHistory;
 import com.example.ecommerce.product.domain.Stock;
@@ -84,6 +86,11 @@ public class ProductService implements IProductService {
     public List<Product> findAll() {
         return productRepository.findAll();
     }
+    
+    @NonNull
+    public List<ProductDTO> findAllDTO() {
+        return productRepository.findAllDTO();
+    }
 
     @NonNull
     public Product findById(@NonNull Long id) {
@@ -94,16 +101,61 @@ public class ProductService implements IProductService {
     }
     
     @NonNull
-    public Product update(@NonNull Product product) {
-        Long productId = product.getId();
-        if (productId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product ID is required for update");
-        }
-        productRepository.findById(productId)
+    public ProductDTO findByIdDTO(@NonNull Long id) {
+        return productRepository.findByIdDTO(id)
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Product not found with id: " + productId
+                        HttpStatus.NOT_FOUND, "Product not found with id: " + id
                 ));
-        return productRepository.update(product);
+    }
+    
+    @NonNull
+    public Product updatePartial(@NonNull Long id, @NonNull ProductUpdateRequest request) {
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Product not found with id: " + id
+                ));
+        
+        boolean priceChanged = false;
+        Double oldPrice = existingProduct.getPrice();
+        
+        if (request.getName() != null) {
+            existingProduct.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            existingProduct.setDescription(request.getDescription());
+        }
+        if (request.getPrice() != null) {
+            existingProduct.setPrice(request.getPrice());
+            priceChanged = !request.getPrice().equals(oldPrice);
+        }
+        if (request.getDiscount() != null) {
+            existingProduct.setDiscount(request.getDiscount());
+        }
+        if (request.getImageLink() != null) {
+            existingProduct.setImageLink(request.getImageLink());
+        }
+        
+        if (request.getCategoryIds() != null) {
+            Set<Category> categories = new HashSet<>(categoryTable.findAllById(request.getCategoryIds()));
+            existingProduct.setCategories(categories);
+        }
+        
+        Product updated = productRepository.update(existingProduct);
+        
+        if (priceChanged) {
+            ProductPriceHistory priceHistory = new ProductPriceHistory();
+            priceHistory.setOldPrice(oldPrice);
+            priceHistory.setNewPrice(request.getPrice());
+            priceHistory.setChangedAt(LocalDateTime.now());
+            priceHistory.setProduct(updated);
+            
+            List<ProductPriceHistory> history = updated.getPriceHistory();
+            if (history != null) {
+                history.add(priceHistory);
+            }
+        }
+        
+        return updated;
     }
     
     public void delete(@NonNull Long id) {

@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.ecommerce.product.api.dto.ProductCreateRequest;
+import com.example.ecommerce.product.api.dto.ProductDTO;
+import com.example.ecommerce.product.api.dto.ProductUpdateRequest;
 import com.example.ecommerce.product.app.ProductService;
 import com.example.ecommerce.product.domain.Product;
 import com.example.ecommerce.product.infrastructure.sync.PopularProductRefreshJob;
@@ -36,8 +38,8 @@ public class ProductBenchmarkController {
     // ===========================================
     
     @GetMapping("/db/products")
-    public List<Product> dbFindAll() {
-        return dbProductService.findAll();
+    public List<ProductDTO> dbFindAll() {
+        return dbProductService.findAllDTO();
     }
     
     @GetMapping("/db/products/{id}")
@@ -52,10 +54,9 @@ public class ProductBenchmarkController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
     
-    @PutMapping("/db/products/{id}")
-    public Product dbUpdate(@PathVariable Long id, @RequestBody Product product) {
-        product.setId(id);
-        return dbProductService.update(product);
+    @PatchMapping("/db/products/{id}")
+    public Product dbUpdate(@PathVariable Long id, @RequestBody ProductUpdateRequest request) {
+        return dbProductService.updatePartial(id, request);
     }
     
     @DeleteMapping("/db/products/{id}")
@@ -72,14 +73,14 @@ public class ProductBenchmarkController {
     // ===========================================
     
     @GetMapping("/cached/products")
-    public List<Product> cachedFindAll() {
-        return cachedProductService.findAll();
+    public List<ProductDTO> cachedFindAll() {
+        return cachedProductService.findAllDTO();
     }
     
     @GetMapping("/cached/products/{id}")
-    public Product cachedFindById(@PathVariable Long id) {
+    public ProductDTO cachedFindById(@PathVariable Long id) {
         popularProductRefreshJob.trackProductView(id);
-        return cachedProductService.findById(id);
+        return cachedProductService.findByIdDTO(id);
     }
     
     @PostMapping("/cached/products")
@@ -88,10 +89,9 @@ public class ProductBenchmarkController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
     
-    @PutMapping("/cached/products/{id}")
-    public Product cachedUpdate(@PathVariable Long id, @RequestBody Product product) {
-        product.setId(id);
-        return cachedProductService.update(product);
+    @PatchMapping("/cached/products/{id}")
+    public Product cachedUpdate(@PathVariable Long id, @RequestBody ProductUpdateRequest request) {
+        return cachedProductService.updatePartial(id, request);
     }
     
     @DeleteMapping("/cached/products/{id}")

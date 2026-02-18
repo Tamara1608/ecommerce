@@ -3,6 +3,8 @@ package com.example.ecommerce.product.app;
 import org.springframework.lang.NonNull;
 
 import com.example.ecommerce.product.api.dto.ProductCreateRequest;
+import com.example.ecommerce.product.api.dto.ProductDTO;
+import com.example.ecommerce.product.api.dto.ProductUpdateRequest;
 import com.example.ecommerce.product.domain.Product;
 
 import java.util.List;
@@ -26,10 +28,16 @@ public interface IProductService {
     List<Product> findAll();
     
     @NonNull
+    List<ProductDTO> findAllDTO();
+    
+    @NonNull
     Product findById(@NonNull Long id);
     
     @NonNull
-    Product update(@NonNull Product product);
+    ProductDTO findByIdDTO(@NonNull Long id);
+    
+    @NonNull
+    Product updatePartial(@NonNull Long id, @NonNull ProductUpdateRequest request);
     
     void delete(@NonNull Long id);
     

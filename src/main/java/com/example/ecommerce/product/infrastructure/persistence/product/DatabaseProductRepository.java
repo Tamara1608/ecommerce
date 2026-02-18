@@ -1,6 +1,7 @@
 package com.example.ecommerce.product.infrastructure.persistence.product;
 
 import com.example.ecommerce.flashsale.infrastructure.persistence.flashsale.FlashSaleTable;
+import com.example.ecommerce.product.api.dto.ProductDTO;
 import com.example.ecommerce.product.domain.Product;
 import com.example.ecommerce.product.domain.Stock;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Repository implementation for Product CRUD operations.
@@ -39,8 +41,33 @@ public class DatabaseProductRepository implements IProductRepository {
 
     @Override
     @NonNull
+    public List<ProductDTO> findAllDTO() {
+        return productTable.findAllWithStock().stream()
+                .map(this::productToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @NonNull
     public Optional<Product> findById(@NonNull Long id) {
         return productTable.findById(id);
+    }
+    
+    @Override
+    @NonNull
+    public Optional<ProductDTO> findByIdDTO(@NonNull Long id) {
+        return productTable.findById(id).map(this::productToDTO);
+    }
+    
+    private ProductDTO productToDTO(Product product) {
+        ProductDTO dto = new ProductDTO();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setDescription(product.getDescription());
+        dto.setPrice(product.getPrice());
+        dto.setDiscount(product.getDiscount());
+        dto.setImageLink(product.getImageLink());
+        return dto;
     }
 
     @Override

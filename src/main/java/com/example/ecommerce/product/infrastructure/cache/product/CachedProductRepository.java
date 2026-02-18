@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.ecommerce.flashsale.infrastructure.persistence.flashsale.FlashSaleTable;
+import com.example.ecommerce.product.api.dto.ProductDTO;
 import com.example.ecommerce.product.domain.Product;
 import com.example.ecommerce.product.infrastructure.persistence.product.IProductRepository;
 import com.example.ecommerce.product.infrastructure.persistence.product.ProductTable;
@@ -17,6 +18,7 @@ import com.example.ecommerce.product.infrastructure.persistence.product.ProductT
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Repository
@@ -59,6 +61,14 @@ public class CachedProductRepository implements IProductRepository {
         return saved;
     }
     
+    @Override
+    @NonNull
+    public List<Product> findAll() {
+        List<Product> products = productTable.findAllWithStock();
+        products.forEach(this::cacheProduct);
+        return products;
+    }
+    
     /**
      * Read-through caching for findAll:
      * 1. Check cache first
@@ -69,16 +79,15 @@ public class CachedProductRepository implements IProductRepository {
     @Override
     @NonNull
     @SuppressWarnings("unchecked")
-    public List<Product> findAll() {
+    public List<ProductDTO> findAllDTO() {
         // Step 1: Check cache
         try {
-            List<Product> cached = (List<Product>) redisTemplate.opsForValue().get(ALL_PRODUCTS_KEY);
+            List<ProductDTO> cachedDTOs = (List<ProductDTO>) redisTemplate.opsForValue().get(ALL_PRODUCTS_KEY);
             
-            if (cached != null) {
-                return cached; // Cache hit - return cached data
+            if (cachedDTOs != null) {
+                return cachedDTOs;
             }
         } catch (Exception e) {
-            // Handle corrupted/stale cache data
             log.warn("Failed to deserialize cached products list, invalidating cache: {}", e.getMessage());
             invalidateAllProductsCache();
         }
@@ -88,13 +97,19 @@ public class CachedProductRepository implements IProductRepository {
         
         // Step 3: Populate cache (read-through)
         if (!products.isEmpty()) {
-            redisTemplate.opsForValue().set(ALL_PRODUCTS_KEY, products);
-            // Also cache individual products for consistency
+            List<ProductDTO> dtos = products.stream()
+                    .map(this::productToDTO)
+                    .collect(Collectors.toList());
+            redisTemplate.opsForValue().set(ALL_PRODUCTS_KEY, dtos);
+            
             products.forEach(this::cacheProduct);
         }
         
-        // Step 4: Return data
-        return products;
+        List<ProductDTO> dtos = products.stream()
+                .map(this::productToDTO)
+                .collect(Collectors.toList());
+        
+        return dtos;
     }
     
     @Override
@@ -106,10 +121,10 @@ public class CachedProductRepository implements IProductRepository {
             Object cached = redisTemplate.opsForValue().get(cacheKey);
             
             if (cached != null) {
-                return Optional.of((Product) cached);
+                ProductDTO dto = (ProductDTO) cached;
+                return Optional.of(dtoToProduct(dto));
             }
         } catch (Exception e) {
-            // Handle corrupted/stale cache data (e.g., class path changes)
             log.warn("Failed to deserialize cached product {}, evicting from cache: {}", id, e.getMessage());
             evictFromCache(id);
         }
@@ -121,6 +136,29 @@ public class CachedProductRepository implements IProductRepository {
         return productOpt;
     }
     
+    @Override
+    @NonNull
+    public Optional<ProductDTO> findByIdDTO(@NonNull Long id) {
+        String cacheKey = CACHE_KEY_PREFIX + id;
+        
+        try {
+            Object cached = redisTemplate.opsForValue().get(cacheKey);
+            
+            if (cached != null) {
+                ProductDTO dto = (ProductDTO) cached;
+                return Optional.of(dto);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to deserialize cached product {}, evicting from cache: {}", id, e.getMessage());
+            evictFromCache(id);
+        }
+        
+        Optional<Product> productOpt = productTable.findByIdWithAllRelations(id);
+        
+        productOpt.ifPresent(this::cacheProduct);
+        
+        return productOpt.map(this::productToDTO);
+    }
 
     @Override
     @NonNull
@@ -128,13 +166,17 @@ public class CachedProductRepository implements IProductRepository {
         // Step 1: Write to database first
         Product updated = productTable.save(product);
         
-        // Step 2: Update cache (write-through)
-        cacheProduct(updated);
+        // Step 2: Fetch with all relations to ensure fully loaded
+        Product fullyLoaded = productTable.findByIdWithAllRelations(updated.getId())
+                .orElse(updated);
         
-        // Step 3: Invalidate all-products cache for consistency
+        // Step 3: Update cache (write-through)
+        cacheProduct(fullyLoaded);
+        
+        // Step 4: Invalidate all-products cache for consistency
         invalidateAllProductsCache();
         
-        return updated;
+        return fullyLoaded;
     }
     
     @Override
@@ -160,7 +202,8 @@ public class CachedProductRepository implements IProductRepository {
             Object cached = redisTemplate.opsForValue().get(cacheKey);
             
             if (cached != null) {
-                return Optional.of((Product) cached);
+                ProductDTO dto = (ProductDTO) cached;
+                return Optional.of(dtoToProduct(dto));
             }
             
             Optional<Product> productOpt = productTable.findById(productId);
@@ -174,7 +217,8 @@ public class CachedProductRepository implements IProductRepository {
         
     private void cacheProduct(Product product) {
         String cacheKey = CACHE_KEY_PREFIX + product.getId();
-        redisTemplate.opsForValue().set(cacheKey, product);
+        ProductDTO dto = productToDTO(product);
+        redisTemplate.opsForValue().set(cacheKey, dto);
     }
     
     private void evictFromCache(Long id) {
@@ -182,9 +226,30 @@ public class CachedProductRepository implements IProductRepository {
         redisTemplate.delete(cacheKey);
     }
     
-    
     private void invalidateAllProductsCache() {
         redisTemplate.delete(ALL_PRODUCTS_KEY);
+    }
+    
+    private ProductDTO productToDTO(Product product) {
+        ProductDTO dto = new ProductDTO();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setDescription(product.getDescription());
+        dto.setPrice(product.getPrice());
+        dto.setDiscount(product.getDiscount());
+        dto.setImageLink(product.getImageLink());
+        return dto;
+    }
+    
+    private Product dtoToProduct(ProductDTO dto) {
+        Product product = new Product();
+        product.setId(dto.getId());
+        product.setName(dto.getName());
+        product.setDescription(dto.getDescription());
+        product.setPrice(dto.getPrice());
+        product.setDiscount(dto.getDiscount());
+        product.setImageLink(dto.getImageLink());
+        return product;
     }
 }
 
