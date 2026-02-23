@@ -2,6 +2,7 @@ package com.example.ecommerce.user.app;
 
 import com.example.ecommerce.user.api.dto.LoginRequest;
 import com.example.ecommerce.user.api.dto.SignupRequest;
+import com.example.ecommerce.user.api.dto.UserDTO;
 import com.example.ecommerce.user.domain.User;
 import com.example.ecommerce.user.infrastructure.persistence.user.IUserRepository;
 
@@ -44,8 +45,23 @@ public class UserService implements IUserService {
     
     @Override
     @NonNull
+    public List<UserDTO> findAllDTO() {
+        return userRepository.findAllDTO();
+    }
+    
+    @Override
+    @NonNull
     public User findById(@NonNull Long id) {
         return userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found with id: " + id
+                ));
+    }
+    
+    @Override
+    @NonNull
+    public UserDTO findByIdDTO(@NonNull Long id) {
+        return userRepository.findByIdDTO(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "User not found with id: " + id
                 ));

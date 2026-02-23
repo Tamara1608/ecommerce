@@ -5,10 +5,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
+import com.example.ecommerce.user.api.dto.UserDTO;
 import com.example.ecommerce.user.domain.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Repository
@@ -32,8 +34,22 @@ public class DatabaseUserRepository implements IUserRepository {
     
     @Override
     @NonNull
+    public List<UserDTO> findAllDTO() {
+        return userTable.findAll().stream()
+                .map(this::userToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @NonNull
     public Optional<User> findById(@NonNull Long id) {
         return userTable.findById(id);
+    }
+    
+    @Override
+    @NonNull
+    public Optional<UserDTO> findByIdDTO(@NonNull Long id) {
+        return userTable.findById(id).map(this::userToDTO);
     }
     
     @Override
@@ -58,5 +74,12 @@ public class DatabaseUserRepository implements IUserRepository {
         userTable.deleteById(id);
     }
     
+    private UserDTO userToDTO(User user) {
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        return dto;
+    }
 }
 

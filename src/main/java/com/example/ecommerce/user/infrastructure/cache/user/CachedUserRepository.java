@@ -6,12 +6,14 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
+import com.example.ecommerce.user.api.dto.UserDTO;
 import com.example.ecommerce.user.domain.User;
 import com.example.ecommerce.user.infrastructure.persistence.user.IUserRepository;
 import com.example.ecommerce.user.infrastructure.persistence.user.UserTable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Repository
@@ -38,9 +40,17 @@ public class CachedUserRepository implements IUserRepository {
     
     @Override
     @NonNull
-    @SuppressWarnings("unchecked")
     public List<User> findAll() {
-        List<User> cached = (List<User>) redisTemplate.opsForValue().get(ALL_USERS_KEY);
+        List<User> users = userTable.findAll();
+        users.forEach(this::cacheUser);
+        return users;
+    }
+    
+    @Override
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public List<UserDTO> findAllDTO() {
+        List<UserDTO> cached = (List<UserDTO>) redisTemplate.opsForValue().get(ALL_USERS_KEY);
         
         if (cached != null) {
             return cached;
@@ -48,9 +58,16 @@ public class CachedUserRepository implements IUserRepository {
         
         List<User> users = userTable.findAll();
         
-        cacheAllUsers(users);
+        if (!users.isEmpty()) {
+            List<UserDTO> dtos = users.stream()
+                    .map(this::userToDTO)
+                    .collect(Collectors.toList());
+            redisTemplate.opsForValue().set(ALL_USERS_KEY, dtos);
+            users.forEach(this::cacheUser);
+            return dtos;
+        }
         
-        return users;
+        return List.of();
     }
     
     @Override
@@ -60,16 +77,32 @@ public class CachedUserRepository implements IUserRepository {
         Object cached = redisTemplate.opsForValue().get(cacheKey);
         
         if (cached != null) {
-            return Optional.of((User) cached);
+            UserDTO dto = (UserDTO) cached;
+            return Optional.of(dtoToUser(dto));
         }
         
         Optional<User> userOpt = userTable.findById(id);
         
-        userOpt.ifPresent(user -> {
-            cacheUser(user);
-        });
+        userOpt.ifPresent(this::cacheUser);
         
         return userOpt;
+    }
+    
+    @Override
+    @NonNull
+    public Optional<UserDTO> findByIdDTO(@NonNull Long id) {
+        String cacheKey = CACHE_KEY_PREFIX + id;
+        Object cached = redisTemplate.opsForValue().get(cacheKey);
+        
+        if (cached != null) {
+            return Optional.of((UserDTO) cached);
+        }
+        
+        Optional<User> userOpt = userTable.findById(id);
+        
+        userOpt.ifPresent(this::cacheUser);
+        
+        return userOpt.map(this::userToDTO);
     }
     
     @Override
@@ -111,7 +144,8 @@ public class CachedUserRepository implements IUserRepository {
     
     private void cacheUser(User user) {
         String cacheKey = CACHE_KEY_PREFIX + user.getId();
-        redisTemplate.opsForValue().set(cacheKey, user);
+        UserDTO dto = userToDTO(user);
+        redisTemplate.opsForValue().set(cacheKey, dto);
     }
     
     private void evictFromCache(Long id) {
@@ -124,15 +158,24 @@ public class CachedUserRepository implements IUserRepository {
         redisTemplate.delete(cacheKey);
     }
     
-    private void cacheAllUsers(List<User> users) {
-        redisTemplate.opsForValue().set(ALL_USERS_KEY, users);
-        users.forEach(user -> {
-            cacheUser(user);
-        });
-    }
-    
     private void invalidateAllUsersCache() {
         redisTemplate.delete(ALL_USERS_KEY);
+    }
+    
+    private UserDTO userToDTO(User user) {
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        return dto;
+    }
+    
+    private User dtoToUser(UserDTO dto) {
+        User user = new User();
+        user.setId(dto.getId());
+        user.setUsername(dto.getUsername());
+        user.setEmail(dto.getEmail());
+        return user;
     }
 }
 

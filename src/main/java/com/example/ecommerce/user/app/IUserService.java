@@ -2,6 +2,7 @@ package com.example.ecommerce.user.app;
 
 import com.example.ecommerce.user.api.dto.LoginRequest;
 import com.example.ecommerce.user.api.dto.SignupRequest;
+import com.example.ecommerce.user.api.dto.UserDTO;
 import com.example.ecommerce.user.domain.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -21,7 +22,13 @@ public interface IUserService {
     List<User> findAll();
     
     @NonNull
+    List<UserDTO> findAllDTO();
+    
+    @NonNull
     User findById(@NonNull Long id);
+    
+    @NonNull
+    UserDTO findByIdDTO(@NonNull Long id);
     
     @NonNull
     User update(@NonNull Long id, @NonNull Map<String, Object> updates);

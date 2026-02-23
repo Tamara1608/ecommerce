@@ -3,6 +3,7 @@ package com.example.ecommerce.user.api;
 import com.example.ecommerce.user.app.UserService;
 import com.example.ecommerce.user.api.dto.LoginRequest;
 import com.example.ecommerce.user.api.dto.SignupRequest;
+import com.example.ecommerce.user.api.dto.UserDTO;
 import com.example.ecommerce.user.domain.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -84,13 +85,13 @@ public class UserBenchmarkController {
     
     
     @GetMapping("/cached/users")
-    public List<User> cachedFindAll() {
-        return cachedUserService.findAll();
+    public List<UserDTO> cachedFindAll() {
+        return cachedUserService.findAllDTO();
     }
     
     @GetMapping("/cached/users/{id}")
-    public User cachedFindById(@PathVariable Long id) {
-        return cachedUserService.findById(id);
+    public UserDTO cachedFindById(@PathVariable Long id) {
+        return cachedUserService.findByIdDTO(id);
     }
     
     @PostMapping("/cached/users")

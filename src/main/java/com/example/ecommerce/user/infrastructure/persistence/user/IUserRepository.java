@@ -2,6 +2,7 @@ package com.example.ecommerce.user.infrastructure.persistence.user;
 
 import org.springframework.lang.NonNull;
 
+import com.example.ecommerce.user.api.dto.UserDTO;
 import com.example.ecommerce.user.domain.User;
 
 import java.util.List;
@@ -16,9 +17,15 @@ public interface IUserRepository {
     
     @NonNull
     List<User> findAll();
+    
+    @NonNull
+    List<UserDTO> findAllDTO();
 
     @NonNull
     Optional<User> findById(@NonNull Long id);
+    
+    @NonNull
+    Optional<UserDTO> findByIdDTO(@NonNull Long id);
 
     @NonNull
     Optional<User> findByUsername(@NonNull String username);
