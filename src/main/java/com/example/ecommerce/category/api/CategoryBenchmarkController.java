@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.ecommerce.category.api.dto.CategoryCreateRequest;
+import com.example.ecommerce.category.api.dto.CategoryDTO;
 import com.example.ecommerce.category.app.CategoryService;
 import com.example.ecommerce.category.domain.Category;
 
@@ -38,13 +39,13 @@ public class CategoryBenchmarkController {
     // ===========================================
     
     @GetMapping("/db/categories")
-    public List<Category> dbFindAll() {
-        return dbCategoryService.findAll();
+    public List<CategoryDTO> dbFindAll() {
+        return dbCategoryService.findAllDTO();
     }
     
     @GetMapping("/db/categories/{id}")
-    public Category dbFindById(@PathVariable Long id) {
-        return dbCategoryService.findById(id);
+    public CategoryDTO dbFindById(@PathVariable Long id) {
+        return dbCategoryService.findByIdDTO(id);
     }
     
     @PostMapping("/db/categories")
@@ -76,13 +77,13 @@ public class CategoryBenchmarkController {
     // ===========================================
     
     @GetMapping("/cached/categories")
-    public List<Category> cachedFindAll() {
-        return cachedCategoryService.findAll();
+    public List<CategoryDTO> cachedFindAll() {
+        return cachedCategoryService.findAllDTO();
     }
     
     @GetMapping("/cached/categories/{id}")
-    public Category cachedFindById(@PathVariable Long id) {
-        return cachedCategoryService.findById(id);
+    public CategoryDTO cachedFindById(@PathVariable Long id) {
+        return cachedCategoryService.findByIdDTO(id);
     }
     
     @PostMapping("/cached/categories")

@@ -1,5 +1,6 @@
 package com.example.ecommerce.category.app;
 
+import com.example.ecommerce.category.api.dto.CategoryDTO;
 import com.example.ecommerce.category.domain.Category;
 import com.example.ecommerce.category.infrastructure.persistence.category.ICategoryRepository;
 import org.springframework.http.HttpStatus;
@@ -32,11 +33,24 @@ public class CategoryService implements ICategoryService {
     }
 
     @NonNull
+    public List<CategoryDTO> findAllDTO() {
+        return categoryRepository.findAllDTO();
+    }
+
+    @NonNull
     public Category findById(@NonNull Long id) {
         return Objects.requireNonNull(categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Category not found with id: " + id
                 )));
+    }
+
+    @NonNull
+    public CategoryDTO findByIdDTO(@NonNull Long id) {
+        return categoryRepository.findByIdDTO(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Category not found with id: " + id
+                ));
     }
     
     @NonNull

@@ -1,9 +1,11 @@
 package com.example.ecommerce.category.infrastructure.cache.category;
 
+import com.example.ecommerce.category.api.dto.CategoryDTO;
 import com.example.ecommerce.category.domain.Category;
 import com.example.ecommerce.category.infrastructure.persistence.category.CategoryTable;
 import com.example.ecommerce.category.infrastructure.persistence.category.ICategoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.lang.NonNull;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Cached implementation of ICategoryRepository.
@@ -22,6 +25,7 @@ import java.util.Optional;
 @Repository
 @Qualifier("cachedCategoryRepository")
 @RequiredArgsConstructor
+@Slf4j
 public class CachedCategoryRepository implements ICategoryRepository {
 
     private final CategoryTable categoryTable;
@@ -55,25 +59,40 @@ public class CachedCategoryRepository implements ICategoryRepository {
     @NonNull
     @SuppressWarnings("unchecked")
     public List<Category> findAll() {
+        return findAllDTO().stream()
+                .map(this::dtoToCategory)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @NonNull
+    public List<CategoryDTO> findAllDTO() {
         // Step 1: Check cache
-        List<Category> cached = (List<Category>) redisTemplate.opsForValue().get(ALL_CATEGORIES_KEY);
-        
-        if (cached != null) {
-            return cached; // Cache hit
+        try {
+            List<CategoryDTO> cachedDTOs = (List<CategoryDTO>) redisTemplate.opsForValue().get(ALL_CATEGORIES_KEY);
+            if (cachedDTOs != null) {
+                return cachedDTOs;
+            }
+        } catch (Exception e) {
+            log.warn("Failed to deserialize cached categories list, invalidating cache: {}", e.getMessage());
+            invalidateAllCategoriesCache();
         }
-        
+
         // Step 2: Cache miss - fetch from database
         List<Category> categories = categoryTable.findAll();
-        
+
         // Step 3: Populate cache (read-through)
-        if (!categories.isEmpty()) {
-            redisTemplate.opsForValue().set(ALL_CATEGORIES_KEY, categories);
+        List<CategoryDTO> dtos = categories.stream()
+                .map(this::categoryToDTO)
+                .collect(Collectors.toList());
+
+        if (!dtos.isEmpty()) {
+            redisTemplate.opsForValue().set(ALL_CATEGORIES_KEY, dtos);
             // Also cache individual categories for consistency
             categories.forEach(this::cacheCategory);
         }
-        
-        // Step 4: Return data
-        return categories;
+
+        return dtos;
     }
 
     /**
@@ -82,22 +101,31 @@ public class CachedCategoryRepository implements ICategoryRepository {
     @Override
     @NonNull
     public Optional<Category> findById(@NonNull Long id) {
-        // Step 1: Check cache
+        return findByIdDTO(id).map(this::dtoToCategory);
+    }
+
+    @Override
+    @NonNull
+    public Optional<CategoryDTO> findByIdDTO(@NonNull Long id) {
         String cacheKey = CACHE_KEY_PREFIX + id;
-        Object cached = redisTemplate.opsForValue().get(cacheKey);
-        
-        if (cached != null) {
-            return Optional.of((Category) cached); // Cache hit
+
+        try {
+            Object cached = redisTemplate.opsForValue().get(cacheKey);
+            if (cached instanceof CategoryDTO dto) {
+                return Optional.of(dto);
+            }
+            if (cached instanceof Category category) {
+                return Optional.of(categoryToDTO(category));
+            }
+        } catch (Exception e) {
+            log.warn("Failed to deserialize cached category {}, evicting from cache: {}", id, e.getMessage());
+            evictFromCache(id);
         }
-        
-        // Step 2: Cache miss - fetch from database
+
+        // Cache miss - fetch from database
         Optional<Category> categoryOpt = categoryTable.findById(id);
-        
-        // Step 3: Populate cache (read-through)
         categoryOpt.ifPresent(this::cacheCategory);
-        
-        // Step 4: Return data
-        return categoryOpt;
+        return categoryOpt.map(this::categoryToDTO);
     }
 
     /**
@@ -139,7 +167,7 @@ public class CachedCategoryRepository implements ICategoryRepository {
     
     private void cacheCategory(Category category) {
         String cacheKey = CACHE_KEY_PREFIX + category.getId();
-        redisTemplate.opsForValue().set(cacheKey, category);
+        redisTemplate.opsForValue().set(cacheKey, categoryToDTO(category));
     }
     
     private void evictFromCache(Long id) {
@@ -149,5 +177,16 @@ public class CachedCategoryRepository implements ICategoryRepository {
     
     private void invalidateAllCategoriesCache() {
         redisTemplate.delete(ALL_CATEGORIES_KEY);
+    }
+
+    private CategoryDTO categoryToDTO(Category category) {
+        return new CategoryDTO(category.getId(), category.getName());
+    }
+
+    private Category dtoToCategory(CategoryDTO dto) {
+        Category category = new Category();
+        category.setId(dto.getId());
+        category.setName(dto.getName());
+        return category;
     }
 }

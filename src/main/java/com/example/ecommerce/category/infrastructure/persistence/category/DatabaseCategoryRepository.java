@@ -1,5 +1,6 @@
 package com.example.ecommerce.category.infrastructure.persistence.category;
 
+import com.example.ecommerce.category.api.dto.CategoryDTO;
 import com.example.ecommerce.category.domain.Category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Repository implementation for Category CRUD operations.
@@ -35,8 +37,22 @@ public class DatabaseCategoryRepository implements ICategoryRepository {
 
     @Override
     @NonNull
+    public List<CategoryDTO> findAllDTO() {
+        return categoryTable.findAll().stream()
+                .map(this::categoryToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @NonNull
     public Optional<Category> findById(@NonNull Long id) {
         return categoryTable.findById(id);
+    }
+
+    @Override
+    @NonNull
+    public Optional<CategoryDTO> findByIdDTO(@NonNull Long id) {
+        return categoryTable.findById(id).map(this::categoryToDTO);
     }
 
     @Override
@@ -48,6 +64,10 @@ public class DatabaseCategoryRepository implements ICategoryRepository {
     @Override
     public void delete(@NonNull Long id) {
         categoryTable.deleteById(id);
+    }
+
+    private CategoryDTO categoryToDTO(Category category) {
+        return new CategoryDTO(category.getId(), category.getName());
     }
 }
 

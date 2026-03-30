@@ -55,33 +55,26 @@ public class ReviewService implements IReviewService {
     @Override
     @NonNull
     public List<ReviewDTO> findAll() {
-        return reviewRepository.findAll().stream()
-            .map(this::toDTO)
-            .collect(Collectors.toList());
+        return reviewRepository.findAllDTO();
     }
     
     @Override
     @NonNull
     public ReviewDTO findById(@NonNull Long id) {
-        Review review = reviewRepository.findById(id)
+        return reviewRepository.findByIdDTO(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Review not found"));
-        return toDTO(review);
     }
     
     @Override
     @NonNull
     public List<ReviewDTO> findByProductId(@NonNull Long productId) {
-        return reviewRepository.findByProductId(productId).stream()
-            .map(this::toDTO)
-            .collect(Collectors.toList());
+        return reviewRepository.findByProductIdDTO(productId);
     }
     
     @Override
     @NonNull
     public List<ReviewDTO> findByUserId(@NonNull Long userId) {
-        return reviewRepository.findByUserId(userId).stream()
-            .map(this::toDTO)
-            .collect(Collectors.toList());
+        return reviewRepository.findByUserIdDTO(userId);
     }
     
     @Override

@@ -1,5 +1,6 @@
 package com.example.ecommerce.review.infrastructure.persistence.review;
 
+import com.example.ecommerce.review.api.dto.ReviewDTO;
 import com.example.ecommerce.review.domain.Review;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 @Qualifier("dbReviewRepository")
@@ -27,11 +29,25 @@ public class DatabaseReviewRepository implements IReviewRepository {
     public List<Review> findAll() {
         return reviewTable.findAll();
     }
+    
+    @Override
+    @NonNull
+    public List<ReviewDTO> findAllDTO() {
+        return reviewTable.findAll().stream()
+                .map(this::reviewToDTO)
+                .collect(Collectors.toList());
+    }
 
     @Override
     @NonNull
     public Optional<Review> findById(@NonNull Long id) {
         return reviewTable.findById(id);
+    }
+    
+    @Override
+    @NonNull
+    public Optional<ReviewDTO> findByIdDTO(@NonNull Long id) {
+        return reviewTable.findById(id).map(this::reviewToDTO);
     }
 
     @Override
@@ -39,11 +55,27 @@ public class DatabaseReviewRepository implements IReviewRepository {
     public List<Review> findByProductId(@NonNull Long productId) {
         return reviewTable.findByProductId(productId);
     }
+    
+    @Override
+    @NonNull
+    public List<ReviewDTO> findByProductIdDTO(@NonNull Long productId) {
+        return reviewTable.findByProductId(productId).stream()
+                .map(this::reviewToDTO)
+                .collect(Collectors.toList());
+    }
 
     @Override
     @NonNull
     public List<Review> findByUserId(@NonNull Long userId) {
         return reviewTable.findByUserId(userId);
+    }
+    
+    @Override
+    @NonNull
+    public List<ReviewDTO> findByUserIdDTO(@NonNull Long userId) {
+        return reviewTable.findByUserId(userId).stream()
+                .map(this::reviewToDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -70,6 +102,19 @@ public class DatabaseReviewRepository implements IReviewRepository {
     @Override
     public boolean existsByUserAndProduct(@NonNull Long userId, @NonNull Long productId) {
         return reviewTable.existsByUserIdAndProductId(userId, productId);
+    }
+    
+    private ReviewDTO reviewToDTO(Review review) {
+        return new ReviewDTO(
+            review.getId(),
+            review.getComment(),
+            review.getGrade(),
+            review.getUser().getId(),
+            review.getUser().getUsername(),
+            review.getProduct().getId(),
+            review.getProduct().getName(),
+            review.getCreatedAt()
+        );
     }
 }
 

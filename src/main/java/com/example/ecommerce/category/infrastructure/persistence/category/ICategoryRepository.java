@@ -1,6 +1,7 @@
 package com.example.ecommerce.category.infrastructure.persistence.category;
 
 import com.example.ecommerce.category.domain.Category;
+import com.example.ecommerce.category.api.dto.CategoryDTO;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
@@ -16,9 +17,15 @@ public interface ICategoryRepository {
     
     @NonNull
     List<Category> findAll();
+
+    @NonNull
+    List<CategoryDTO> findAllDTO();
     
     @NonNull
     Optional<Category> findById(@NonNull Long id);
+
+    @NonNull
+    Optional<CategoryDTO> findByIdDTO(@NonNull Long id);
     
     @NonNull
     Category update(@NonNull Category category);

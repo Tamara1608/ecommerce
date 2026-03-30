@@ -1,5 +1,6 @@
 package com.example.ecommerce.review.infrastructure.persistence.review;
 
+import com.example.ecommerce.review.api.dto.ReviewDTO;
 import com.example.ecommerce.review.domain.Review;
 import org.springframework.lang.NonNull;
 
@@ -15,13 +16,25 @@ public interface IReviewRepository {
     List<Review> findAll();
     
     @NonNull
+    List<ReviewDTO> findAllDTO();
+    
+    @NonNull
     Optional<Review> findById(@NonNull Long id);
+    
+    @NonNull
+    Optional<ReviewDTO> findByIdDTO(@NonNull Long id);
     
     @NonNull
     List<Review> findByProductId(@NonNull Long productId);
     
     @NonNull
+    List<ReviewDTO> findByProductIdDTO(@NonNull Long productId);
+    
+    @NonNull
     List<Review> findByUserId(@NonNull Long userId);
+    
+    @NonNull
+    List<ReviewDTO> findByUserIdDTO(@NonNull Long userId);
     
     @NonNull
     Review update(@NonNull Review review);

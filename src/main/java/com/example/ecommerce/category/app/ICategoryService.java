@@ -1,5 +1,6 @@
 package com.example.ecommerce.category.app;
 
+import com.example.ecommerce.category.api.dto.CategoryDTO;
 import com.example.ecommerce.category.domain.Category;
 import org.springframework.lang.NonNull;
 
@@ -17,8 +18,14 @@ public interface ICategoryService {
     List<Category> findAll();
     
     @NonNull
+    List<CategoryDTO> findAllDTO();
+
+    @NonNull
     Category findById(@NonNull Long id);
     
+    @NonNull
+    CategoryDTO findByIdDTO(@NonNull Long id);
+
     @NonNull
     Category update(@NonNull Category category);
     

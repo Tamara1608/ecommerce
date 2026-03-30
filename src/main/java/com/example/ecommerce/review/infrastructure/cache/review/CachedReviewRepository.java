@@ -1,5 +1,6 @@
 package com.example.ecommerce.review.infrastructure.cache.review;
 
+import com.example.ecommerce.review.api.dto.ReviewDTO;
 import com.example.ecommerce.review.domain.Review;
 import com.example.ecommerce.review.infrastructure.persistence.review.IReviewRepository;
 import com.example.ecommerce.review.infrastructure.persistence.review.ReviewTable;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Write-Around + Read-Through implementation for Reviews.
@@ -56,6 +58,16 @@ public class CachedReviewRepository implements IReviewRepository {
     public List<Review> findAll() {
         return reviewTable.findAll();
     }
+    
+    @Override
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public List<ReviewDTO> findAllDTO() {
+        List<Review> reviews = reviewTable.findAll();
+        return reviews.stream()
+                .map(this::reviewToDTO)
+                .collect(Collectors.toList());
+    }
 
     @Override
     @NonNull
@@ -64,21 +76,43 @@ public class CachedReviewRepository implements IReviewRepository {
         Object cached = redisTemplate.opsForValue().get(cacheKey);
         
         if (cached != null) {
-            return Optional.of((Review) cached);
+            return reviewTable.findById(id);
         }
         
         Optional<Review> reviewOpt = reviewTable.findById(id);
-        reviewOpt.ifPresent(review -> cacheReview(review));
+        reviewOpt.ifPresent(this::cacheReview);
         
         return reviewOpt;
+    }
+    
+    @Override
+    @NonNull
+    public Optional<ReviewDTO> findByIdDTO(@NonNull Long id) {
+        String cacheKey = CACHE_KEY_PREFIX + id;
+        Object cached = redisTemplate.opsForValue().get(cacheKey);
+        
+        if (cached != null) {
+            return Optional.of((ReviewDTO) cached);
+        }
+        
+        Optional<Review> reviewOpt = reviewTable.findById(id);
+        reviewOpt.ifPresent(this::cacheReview);
+        
+        return reviewOpt.map(this::reviewToDTO);
     }
 
     @Override
     @NonNull
-    @SuppressWarnings("unchecked")
     public List<Review> findByProductId(@NonNull Long productId) {
+        return reviewTable.findByProductId(productId);
+    }
+    
+    @Override
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public List<ReviewDTO> findByProductIdDTO(@NonNull Long productId) {
         String cacheKey = PRODUCT_REVIEWS_PREFIX + productId;
-        List<Review> cached = (List<Review>) redisTemplate.opsForValue().get(cacheKey);
+        List<ReviewDTO> cached = (List<ReviewDTO>) redisTemplate.opsForValue().get(cacheKey);
         
         if (cached != null) {
             return cached;
@@ -87,18 +121,28 @@ public class CachedReviewRepository implements IReviewRepository {
         List<Review> reviews = reviewTable.findByProductId(productId);
         
         if (!reviews.isEmpty()) {
-            redisTemplate.opsForValue().set(cacheKey, reviews, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+            List<ReviewDTO> dtos = reviews.stream()
+                    .map(this::reviewToDTO)
+                    .collect(Collectors.toList());
+            redisTemplate.opsForValue().set(cacheKey, dtos, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+            return dtos;
         }
         
-        return reviews;
+        return List.of();
     }
 
     @Override
     @NonNull
-    @SuppressWarnings("unchecked")
     public List<Review> findByUserId(@NonNull Long userId) {
+        return reviewTable.findByUserId(userId);
+    }
+    
+    @Override
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public List<ReviewDTO> findByUserIdDTO(@NonNull Long userId) {
         String cacheKey = USER_REVIEWS_PREFIX + userId;
-        List<Review> cached = (List<Review>) redisTemplate.opsForValue().get(cacheKey);
+        List<ReviewDTO> cached = (List<ReviewDTO>) redisTemplate.opsForValue().get(cacheKey);
         
         if (cached != null) {
             return cached;
@@ -107,10 +151,14 @@ public class CachedReviewRepository implements IReviewRepository {
         List<Review> reviews = reviewTable.findByUserId(userId);
         
         if (!reviews.isEmpty()) {
-            redisTemplate.opsForValue().set(cacheKey, reviews, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+            List<ReviewDTO> dtos = reviews.stream()
+                    .map(this::reviewToDTO)
+                    .collect(Collectors.toList());
+            redisTemplate.opsForValue().set(cacheKey, dtos, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+            return dtos;
         }
         
-        return reviews;
+        return List.of();
     }
 
     @Override
@@ -179,7 +227,8 @@ public class CachedReviewRepository implements IReviewRepository {
     
     private void cacheReview(Review review) {
         String cacheKey = CACHE_KEY_PREFIX + review.getId();
-        redisTemplate.opsForValue().set(cacheKey, review, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+        ReviewDTO dto = reviewToDTO(review);
+        redisTemplate.opsForValue().set(cacheKey, dto, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
     }
     
     private void evictFromCache(Long id) {
@@ -197,6 +246,19 @@ public class CachedReviewRepository implements IReviewRepository {
     private void invalidateProductStatsCache(Long productId) {
         redisTemplate.delete(PRODUCT_AVG_PREFIX + productId);
         redisTemplate.delete(PRODUCT_COUNT_PREFIX + productId);
+    }
+    
+    private ReviewDTO reviewToDTO(Review review) {
+        return new ReviewDTO(
+            review.getId(),
+            review.getComment(),
+            review.getGrade(),
+            review.getUser().getId(),
+            review.getUser().getUsername(),
+            review.getProduct().getId(),
+            review.getProduct().getName(),
+            review.getCreatedAt()
+        );
     }
 }
 
